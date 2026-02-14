@@ -34,9 +34,9 @@ class ConceptParserService:
         relationships = extraction_result.get("relationships", [])
         category = extraction_result.get("category", category or "Uncategorized")
         
-        # Step 2: Interpolate missing prerequisites
+        # Step 2: Interpolate missing prerequisites using domain-specific rules
+        # Note: Only using local rules to avoid extra API calls
         concepts = ConceptInterpolationService.interpolate_with_rules(concepts)
-        concepts = GeminiConceptExtractor.interpolate_prerequisites(concepts)
         
         # Step 3: Create all concepts in database
         created_concepts = []
@@ -59,7 +59,8 @@ class ConceptParserService:
             if not concept_data.get("is_fundamental", False):
                 try:
                     concept = ConceptParserService._create_concept(
-                        concept_data, category, prerequisite_map=concept_map
+                        concept_data, category, prerequisite_map=concept_map,
+                        relationships=relationships
                     )
                     created_concepts.append(concept)
                     concept_map[concept_data["title"]] = concept.concept_id
@@ -89,7 +90,8 @@ class ConceptParserService:
     
     @staticmethod
     def _create_concept(concept_data: Dict, category: str, 
-                       prerequisite_map: Dict = None) -> Optional[Concept]:
+                       prerequisite_map: Dict = None,
+                       relationships: List[Dict] = None) -> Optional[Concept]:
         """Create a single concept in the database"""
         
         if not concept_data.get("concept_id"):
@@ -100,25 +102,21 @@ class ConceptParserService:
         if existing:
             return existing
         
-        # Get prerequisites from the map
+        # Get prerequisites from relationships (already extracted by Gemini)
         prerequisites = []
-        if prerequisite_map:
-            # Try to find prerequisites by title
-            concept_lower = concept_data.get("title", "").lower()
+        if prerequisite_map and relationships:
+            concept_title = concept_data.get("title", "")
             
-            # Get prerequisite titles from Gemini suggestions
-            all_titles = list(prerequisite_map.keys())
-            prereq_titles = GeminiConceptExtractor.suggest_dependencies(
-                concept_data.get("title", ""), 
-                all_titles
-            )
-            
-            # Map titles to concept_ids
-            for title in prereq_titles:
-                if title.lower() in prerequisite_map:
-                    prereq_id = prerequisite_map[title.lower()]
-                    if prereq_id:
-                        prerequisites.append(prereq_id)
+            # Find prerequisite titles from relationships
+            for rel in relationships:
+                if rel.get("concept", "").lower() == concept_title.lower():
+                    prereq_title = rel.get("prerequisite", "")
+                    # Find matching concept in map
+                    for title, cid in prerequisite_map.items():
+                        if title.lower() == prereq_title.lower():
+                            if cid:
+                                prerequisites.append(cid)
+                            break
         
         # Create concept with prerequisites
         concept = ConceptService.create_concept(

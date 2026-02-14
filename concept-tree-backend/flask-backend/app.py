@@ -1,14 +1,16 @@
 """
 Main Flask application for Concept Dependency Tree Backend
 """
+from dotenv import load_dotenv
+
+# Load environment variables FIRST before importing anything that uses them
+load_dotenv()
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 from mongoengine import connect, disconnect
 from routes import concept_routes, user_routes, parser_routes
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 # Initialize Flask
 app = Flask(__name__)

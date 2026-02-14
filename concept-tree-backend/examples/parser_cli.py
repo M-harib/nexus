@@ -37,7 +37,7 @@ class ParserCLI:
             response = requests.post(
                 f"{API_URL}/api/parser/parse",
                 json={"text": text, "category": category},
-                timeout=30
+                timeout=120
             )
             
             if response.status_code == 503:

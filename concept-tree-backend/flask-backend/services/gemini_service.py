@@ -16,7 +16,7 @@ if GEMINI_API_KEY:
 class GeminiConceptExtractor:
     """Uses Gemini API to extract concepts and dependencies from text"""
     
-    MODEL_NAME = "gemini-3-flash-preview"
+    MODEL_NAME = "gemini-2.0-flash"
     
     @staticmethod
     def extract_concepts_from_text(text: str, category: str = "") -> Dict:
