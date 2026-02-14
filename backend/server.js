@@ -1,9 +1,19 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+
+// Initialize Gemini AI
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+console.log('🔑 Loading GEMINI_API_KEY:', GEMINI_API_KEY ? `"${GEMINI_API_KEY.substring(0, 4)}...${GEMINI_API_KEY.substring(GEMINI_API_KEY.length - 4)}"` : 'Not Found');
+const genAI = GEMINI_API_KEY && GEMINI_API_KEY !== 'your_gemini_api_key_here' 
+  ? new GoogleGenerativeAI(GEMINI_API_KEY) 
+  : null;
+const model = genAI ? genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }) : null;
 
 // Middleware
 app.use(cors());
@@ -243,169 +253,185 @@ app.post('/api/reset', (req, res) => {
   });
 });
 
-// Generate custom tree (bonus feature)
-app.post('/api/generate-tree', (req, res) => {
+// Generate custom tree with Gemini AI
+app.post('/api/generate-tree', async (req, res) => {
   const { topic } = req.body;
   
+  console.log('\n========================================');
+  console.log('📝 NEW TOPIC REQUEST RECEIVED');
+  console.log('========================================');
+  console.log('Topic:', topic);
+  console.log('Timestamp:', new Date().toISOString());
+  
   if (!topic || !topic.trim()) {
+    console.log('❌ Error: Topic is empty or missing');
     return res.status(400).json({
       success: false,
       message: 'Topic is required'
     });
   }
 
-  // Generate a learning tree based on the topic
-  const generatedTree = generateLearningTree(topic.toLowerCase().trim());
-  
-  res.json({
-    success: true,
-    topic: topic,
-    graph: generatedTree
-  });
+  try {
+    console.log('🚀 Starting tree generation...');
+    // Generate a learning tree based on the topic using Gemini AI
+    const generatedTree = await generateLearningTreeWithAI(topic.trim());
+    
+    console.log('✅ Tree generation successful!');
+    console.log('Generated nodes:', generatedTree.nodes.length);
+    console.log('Generated links:', generatedTree.links.length);
+    console.log('Node IDs:', generatedTree.nodes.map(n => n.id).join(', '));
+    console.log('========================================\n');
+    
+    res.json({
+      success: true,
+      topic: topic,
+      graph: generatedTree
+    });
+  } catch (error) {
+    console.error('❌ Error generating tree:', error);
+    console.error('Error details:', error.message);
+    console.error('Stack trace:', error.stack);
+    console.log('========================================\n');
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate learning tree',
+      error: error.message
+    });
+  }
 });
 
-// Helper function to generate learning tree
-function generateLearningTree(topic) {
-  // Topic templates - in production this would use LLM
-  const templates = {
-    'react': generateReactTree,
-    'python': generatePythonTree,
-    'machine learning': generateMLTree,
-    'web development': generateWebDevTree,
-    'data science': generateDataScienceTree,
-  };
+// AI-powered function to generate learning tree with Gemini
+async function generateLearningTreeWithAI(topic) {
+  console.log('\n🤖 AI Generation Function Called');
+  console.log('Topic received:', topic);
+  
+  // If Gemini API not configured, use fallback
+  if (!model) {
+    console.log('⚠️  Gemini API not configured (model is null)');
+    console.log('📄 Using FALLBACK generic template');
+    console.log('💡 To enable AI: Set GEMINI_API_KEY in .env file');
+    return generateGenericTree(topic);
+  }
 
-  // Find matching template or use generic
-  const generator = templates[topic] || (() => generateGenericTree(topic));
-  return generator();
+  console.log('✓ Gemini API configured - using AI generation');
+
+  const prompt = `Generate a learning tree for the topic: "${topic}".
+
+Create a JSON object with this structure:
+{
+  "nodes": [
+    {
+      "id": "unique-id",
+      "label": "Topic Name",
+      "status": "mastered" | "active" | "locked",
+      "level": 1-6,
+      "description": "Brief description"
+    }
+  ],
+  "links": [
+    {
+      "source": "prerequisite-id",
+      "target": "next-topic-id"
+    }
+  ]
 }
 
-function generateReactTree() {
-  return {
-    nodes: [
-      { id: 'html-css', label: 'HTML & CSS\nBasics', status: 'mastered', level: 1, description: 'Web page structure and styling' },
-      { id: 'javascript', label: 'JavaScript\nFundamentals', status: 'active', level: 2, description: 'JS syntax, functions, DOM manipulation' },
-      { id: 'es6', label: 'ES6+\nFeatures', status: 'locked', level: 2, description: 'Arrow functions, destructuring, modules' },
-      { id: 'react-basics', label: 'React\nBasics', status: 'locked', level: 3, description: 'Components, JSX, Props' },
-      { id: 'state-props', label: 'State &\nProps', status: 'locked', level: 3, description: 'Managing component state' },
-      { id: 'hooks', label: 'React\nHooks', status: 'locked', level: 4, description: 'useState, useEffect, custom hooks' },
-      { id: 'routing', label: 'React\nRouter', status: 'locked', level: 4, description: 'Navigation and routing' },
-      { id: 'state-management', label: 'State\nManagement', status: 'locked', level: 5, description: 'Redux, Context API, Zustand' },
-      { id: 'api-integration', label: 'API\nIntegration', status: 'locked', level: 5, description: 'Fetch, Axios, async operations' },
-      { id: 'performance', label: 'React\nPerformance', status: 'locked', level: 6, description: 'Optimization, memoization' },
-      { id: 'testing', label: 'Testing\nReact Apps', status: 'locked', level: 6, description: 'Jest, React Testing Library' },
-    ],
-    links: [
-      { source: 'html-css', target: 'javascript' },
-      { source: 'html-css', target: 'es6' },
-      { source: 'javascript', target: 'react-basics' },
-      { source: 'es6', target: 'react-basics' },
-      { source: 'react-basics', target: 'state-props' },
-      { source: 'state-props', target: 'hooks' },
-      { source: 'state-props', target: 'routing' },
-      { source: 'hooks', target: 'state-management' },
-      { source: 'hooks', target: 'api-integration' },
-      { source: 'state-management', target: 'performance' },
-      { source: 'api-integration', target: 'testing' },
-    ]
-  };
-}
+Requirements:
+- Generate 8-12 nodes
+- First node: status "mastered", level 1
+- Second node: status "active"
+- All other nodes: status "locked"
+- Use levels 1-6 to show progression (beginner to advanced)
+- Create logical links showing prerequisites
+- Keep labels clear and concise (no special characters)
+- Keep descriptions short (1 sentence)
 
-function generatePythonTree() {
-  return {
-    nodes: [
-      { id: 'python-basics', label: 'Python\nBasics', status: 'mastered', level: 1, description: 'Variables, data types, operators' },
-      { id: 'control-flow', label: 'Control\nFlow', status: 'active', level: 2, description: 'If/else, loops, functions' },
-      { id: 'data-structures', label: 'Data\nStructures', status: 'locked', level: 2, description: 'Lists, dicts, sets, tuples' },
-      { id: 'oop', label: 'Object-Oriented\nProgramming', status: 'locked', level: 3, description: 'Classes, inheritance, polymorphism' },
-      { id: 'file-handling', label: 'File\nHandling', status: 'locked', level: 3, description: 'Reading/writing files, CSV, JSON' },
-      { id: 'libraries', label: 'Popular\nLibraries', status: 'locked', level: 4, description: 'NumPy, Pandas, Matplotlib' },
-      { id: 'web-frameworks', label: 'Web\nFrameworks', status: 'locked', level: 4, description: 'Flask, Django,FastAPI' },
-      { id: 'apis', label: 'APIs &\nRequests', status: 'locked', level: 5, description: 'REST APIs, requests library' },
-      { id: 'testing', label: 'Testing &\nDebugging', status: 'locked', level: 5, description: 'Pytest, unittest, debugging' },
-      { id: 'deployment', label: 'Deployment', status: 'locked', level: 6, description: 'Docker, cloud deployment' },
-    ],
-    links: [
-      { source: 'python-basics', target: 'control-flow' },
-      { source: 'python-basics', target: 'data-structures' },
-      { source: 'control-flow', target: 'oop' },
-      { source: 'data-structures', target: 'file-handling' },
-      { source: 'oop', target: 'libraries' },
-      { source: 'file-handling', target: 'web-frameworks' },
-      { source: 'libraries', target: 'apis' },
-      { source: 'web-frameworks', target: 'apis' },
-      { source: 'apis', target: 'testing' },
-      { source: 'testing', target: 'deployment' },
-    ]
-  };
-}
+Return ONLY valid JSON, no markdown code blocks.`;
 
-function generateMLTree() {
-  return knowledgeGraph; // Use the existing ML tree
-}
-
-function generateWebDevTree() {
-  return {
-    nodes: [
-      { id: 'html', label: 'HTML\nFundamentals', status: 'mastered', level: 1, description: 'Structure and semantics' },
-      { id: 'css', label: 'CSS\nStyling', status: 'active', level: 2, description: 'Selectors, box model, flexbox' },
-      { id: 'javascript', label: 'JavaScript\nBasics', status: 'locked', level: 2, description: 'DOM manipulation, events' },
-      { id: 'responsive', label: 'Responsive\nDesign', status: 'locked', level: 3, description: 'Media queries, mobile-first' },
-      { id: 'frameworks', label: 'CSS\nFrameworks', status: 'locked', level: 3, description: 'Bootstrap, Tailwind' },
-      { id: 'frontend-framework', label: 'Frontend\nFramework', status: 'locked', level: 4, description: 'React, Vue, or Angular' },
-      { id: 'backend-basics', label: 'Backend\nBasics', status: 'locked', level: 4, description: 'Node.js, APIs, databases' },
-      { id: 'databases', label: 'Databases', status: 'locked', level: 5, description: 'SQL, MongoDB, Postgres' },
-      { id: 'authentication', label: 'Authentication', status: 'locked', level: 5, description: 'JWT, OAuth, sessions' },
-      { id: 'deployment', label: 'Deployment', status: 'locked', level: 6, description: 'Hosting, CI/CD, domains' },
-    ],
-    links: [
-      { source: 'html', target: 'css' },
-      { source: 'html', target: 'javascript' },
-      { source: 'css', target: 'responsive' },
-      { source: 'css', target: 'frameworks' },
-      { source: 'javascript', target: 'frontend-framework' },
-      { source: 'javascript', target: 'backend-basics' },
-      { source: 'frontend-framework', target: 'databases' },
-      { source: 'backend-basics', target: 'databases' },
-      { source: 'databases', target: 'authentication' },
-      { source: 'authentication', target: 'deployment' },
-    ]
-  };
-}
-
-function generateDataScienceTree() {
-  return {
-    nodes: [
-      { id: 'python-basics', label: 'Python\nBasics', status: 'mastered', level: 1, description: 'Variables, functions, data types' },
-      { id: 'numpy', label: 'NumPy', status: 'active', level: 2, description: 'Arrays, mathematical operations' },
-      { id: 'pandas', label: 'Pandas', status: 'locked', level: 2, description: 'DataFrames, data manipulation' },
-      { id: 'visualization', label: 'Data\nVisualization', status: 'locked', level: 3, description: 'Matplotlib, Seaborn, Plotly' },
-      { id: 'statistics', label: 'Statistics', status: 'locked', level: 3, description: 'Descriptive, inferential stats' },
-      { id: 'ml-basics', label: 'Machine\nLearning', status: 'locked', level: 4, description: 'Scikit-learn, models, training' },
-      { id: 'deep-learning', label: 'Deep\nLearning', status: 'locked', level: 5, description: 'TensorFlow, PyTorch, neural nets' },
-      { id: 'nlp', label: 'Natural Language\nProcessing', status: 'locked', level: 6, description: 'Text analysis, transformers' },
-      { id: 'computer-vision', label: 'Computer\nVision', status: 'locked', level: 6, description: 'Image processing, CNNs' },
-    ],
-    links: [
-      { source: 'python-basics', target: 'numpy' },
-      { source: 'python-basics', target: 'pandas' },
-      { source: 'numpy', target: 'visualization' },
-      { source: 'pandas', target: 'visualization' },
-      { source: 'pandas', target: 'statistics' },
-      { source: 'visualization', target: 'ml-basics' },
-      { source: 'statistics', target: 'ml-basics' },
-      { source: 'ml-basics', target: 'deep-learning' },
-      { source: 'deep-learning', target: 'nlp' },
-      { source: 'deep-learning', target: 'computer-vision' },
-    ]
-  };
+  try {
+    console.log('\n📤 Sending prompt to Gemini AI...');
+    console.log('Prompt length:', prompt.length, 'characters');
+    
+    const result = await model.generateContent(prompt);
+    console.log('📥 Received response from Gemini AI');
+    
+    const response = await result.response;
+    let text = response.text();
+    
+    console.log('\n📄 Raw AI Response:');
+    console.log('─────────────────────────────────────');
+    console.log(text.substring(0, 500) + (text.length > 500 ? '...' : ''));
+    console.log('─────────────────────────────────────');
+    console.log('Response length:', text.length, 'characters');
+    
+    // Clean and extract JSON
+    console.log('\n🧹 Extracting JSON from response...');
+    
+    // Remove markdown code blocks if present
+    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    
+    // Try to extract JSON object
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error('❌ Could not find valid JSON in the AI response.');
+      throw new Error('Invalid response format from AI: No JSON found.');
+    }
+    
+    console.log('📝 Extracted JSON preview:', jsonMatch[0].substring(0, 200) + '...');
+    
+    console.log('\n🔍 Parsing JSON...');
+    const tree = JSON.parse(jsonMatch[0]);
+    console.log('✓ JSON parsed successfully');
+    
+    // Validate structure
+    console.log('\n🔍 Validating tree structure...');
+    if (!tree.nodes || !Array.isArray(tree.nodes) || !tree.links || !Array.isArray(tree.links)) {
+      throw new Error('Invalid tree structure from AI - missing nodes or links arrays');
+    }
+    console.log('✓ Tree structure valid');
+    console.log('  - Nodes:', tree.nodes.length);
+    console.log('  - Links:', tree.links.length);
+    
+    // Ensure at least one mastered and one active node
+    console.log('\n🔧 Adjusting node statuses...');
+    if (!tree.nodes.some(n => n.status === 'mastered')) {
+      console.log('  - Setting first node to "mastered"');
+      tree.nodes[0].status = 'mastered';
+    }
+    if (!tree.nodes.some(n => n.status === 'active')) {
+      const firstLocked = tree.nodes.findIndex(n => n.status === 'locked');
+      if (firstLocked > -1) {
+        console.log(`  - Setting node ${firstLocked} to "active"`);
+        tree.nodes[firstLocked].status = 'active';
+      }
+    }
+    
+    console.log('\n✅ AI generation complete!');
+    console.log('Final tree preview:');
+    tree.nodes.forEach((node, i) => {
+      console.log(`  ${i+1}. [${node.status.padEnd(8)}] ${node.label.replace(/\n/g, ' ')} (level ${node.level})`);
+    });
+    
+    return tree;
+  } catch (error) {
+    console.error('\n❌ AI generation failed!');
+    console.error('Error type:', error.constructor.name);
+    console.error('Error message:', error.message);
+    if (error.stack) console.error('Stack trace:', error.stack);
+    console.log('\n📄 Falling back to generic template...');
+    // Fallback to a generic tree if AI fails
+    return generateGenericTree(topic);
+  }
 }
 
 function generateGenericTree(topic) {
-  // Generic template for any topic
+  console.log('\n📋 Generating generic fallback tree');
+  console.log('Topic:', topic);
+  
+  // Generic template for any topic (fallback)
   const capitalizedTopic = topic.charAt(0).toUpperCase() + topic.slice(1);
   
-  return {
+  const tree = {
     nodes: [
       { id: 'basics', label: `${capitalizedTopic}\nBasics`, status: 'mastered', level: 1, description: 'Fundamental concepts and introduction' },
       { id: 'fundamentals', label: 'Core\nFundamentals', status: 'active', level: 2, description: 'Essential principles and practices' },
@@ -425,6 +451,9 @@ function generateGenericTree(topic) {
       { source: 'practical', target: 'mastery' },
     ]
   };
+  
+  console.log('✓ Generic tree created with', tree.nodes.length, 'nodes');
+  return tree;
 }
 
 // Error handling
