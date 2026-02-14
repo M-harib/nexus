@@ -12,6 +12,7 @@ import Greeting from './components/Greeting';
 import SplashScreen from './components/SplashScreen';
 import StarryBackground from './components/StarryBackground';
 import ConstellationView from './components/ConstellationView';
+import LibraryView from './components/LibraryView';
 
 const API_URL = 'http://localhost:5000';
 
@@ -21,7 +22,9 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [mainVisible, setMainVisible] = useState(false);
   const [showConstellation, setShowConstellation] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
   const [userPrompt, setUserPrompt] = useState('');
+  const [userId] = useState('user-' + Math.random().toString(36).substr(2, 9));
 
   const handleSplashComplete = () => {
     setShowSplash(false);
@@ -37,8 +40,50 @@ function App() {
     setShowConstellation(false);
   };
 
+  const handleMenuClick = (menuLabel) => {
+    switch (menuLabel) {
+      case 'Library':
+        setShowLibrary(true);
+        break;
+      case 'Create Tree':
+        setShowConstellation(false);
+        setShowLibrary(false);
+        break;
+      case 'Settings':
+        // TODO: Implement settings
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleBackFromLibrary = () => {
+    setShowLibrary(false);
+  };
+
+  const handleOpenTreeFromLibrary = (tree) => {
+    // TODO: Load tree into constellation view
+    console.log('Opening tree:', tree);
+    setShowLibrary(false);
+    setShowConstellation(true);
+  };
+
   if (showSplash) {
     return <SplashScreen onComplete={handleSplashComplete}/>;
+  }
+
+  if (showLibrary) {
+    return (
+      <div className={`app-container library-wrapper flex h-screen w-screen bg-black text-gray-100 overflow-hidden relative ${mainVisible ? 'main-enter' : ''}`}>
+        <StarryBackground />
+        <div className="sidebar">
+          <Sidebar isHovered={isHovered} setIsHovered={setIsHovered} onMenuClick={handleMenuClick} />
+        </div>
+        <div className={`flex flex-col flex-1 transition-all duration-300 ease-in-out ${isHovered ? 'ml-56' : 'ml-16'}`}>
+          <LibraryView userId={userId} onBack={handleBackFromLibrary} onOpenTree={handleOpenTreeFromLibrary} />
+        </div>
+      </div>
+    );
   }
 
   if (showConstellation) {
@@ -50,7 +95,7 @@ function App() {
       <StarryBackground />
       
       <div className="sidebar">
-        <Sidebar isHovered={isHovered} setIsHovered={setIsHovered} />
+        <Sidebar isHovered={isHovered} setIsHovered={setIsHovered} onMenuClick={handleMenuClick} />
       </div>
       
       <div className={`flex flex-col flex-1 transition-all duration-300 ease-in-out ${isHovered ? 'ml-56' : 'ml-16'}`}>
