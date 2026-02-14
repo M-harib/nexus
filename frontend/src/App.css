@@ -3,7 +3,7 @@
   height: 100vh;
   position: relative;
   overflow: hidden;
-  background: #000000;
+  background: #0a0818;
 }
 
 .sidebar {
@@ -21,8 +21,8 @@
   right: 0;
   height: 60px;
   z-index: 50;
-  background: #0a0a0a;
-  border-bottom: 1px solid #222222;
+  background: #0a0818;
+  border-bottom: 1px solid #1a1530;
   display: flex;
   align-items: center;
   padding: 0 24px;
@@ -423,22 +423,6 @@
   opacity: 0.85;
 }
 
-/* Splash exit — text slides off bottom (looking up effect) */
-.splash-exit .splash-content {
-  animation: splash-slide-down 2000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes splash-slide-down {
-  0% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(120vh);
-    opacity: 0;
-  }
-}
-
 /* Splash stars — appear gradually */
 .splash-star-gradual {
   position: absolute;
@@ -465,17 +449,103 @@
   }
 }
 
-.splash-exit .splash-star-gradual {
-  animation: star-fade 2000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+/* Splash exit — "looking up" effect: text slides down, stars streak downward */
+.splash-exit .splash-content {
+  animation: splash-slide-down 1800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-@keyframes star-fade {
+@keyframes splash-slide-down {
   0% {
-    transform: scale(1);
+    transform: translateY(0);
     opacity: 1;
   }
   100% {
-    transform: scale(2);
+    transform: translateY(120vh);
+    opacity: 0;
+  }
+}
+
+/* Existing splash stars become streaks during exit */
+.star-look-up {
+  animation: star-streak-down 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+}
+
+@keyframes star-streak-down {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    height: var(--star-streak, 15px);
+    border-radius: 50%;
+  }
+  15% {
+    opacity: 1;
+    height: var(--star-streak, 15px);
+    border-radius: 50% 50% 80% 80%;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(130vh) scale(0.5);
+    height: var(--star-streak, 15px);
+    border-radius: 50% 50% 80% 80%;
+  }
+}
+
+/* Streaming stars — new stars that rush down from above */
+.stream-star {
+  position: absolute;
+  background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.6) 50%, transparent 70%);
+  border-radius: 50% 50% 80% 80%;
+  pointer-events: none;
+  opacity: 0;
+  animation: stream-star-fall ease-in forwards;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.6),
+              0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.stream-star::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: var(--streak-len, 20px);
+  background: linear-gradient(to bottom, rgba(255,255,255,0.7), rgba(255,255,255,0.1), transparent);
+  border-radius: 0 0 50% 50%;
+  transform-origin: top center;
+}
+
+@keyframes stream-star-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  8% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(250vh);
+  }
+}
+
+/* Overall splash fade-out at the end */
+.splash-exit {
+  animation: splash-screen-fade 2000ms ease-in-out forwards;
+}
+
+@keyframes splash-screen-fade {
+  0% {
+    background: #000;
+  }
+  70% {
+    background: #000;
+  }
+  100% {
+    background: #000;
     opacity: 0;
   }
 }
@@ -487,6 +557,7 @@
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+  background: radial-gradient(ellipse at center, #0d0a20 0%, #06050f 100%);
 }
 
 .bg-twinkle-star {
@@ -533,6 +604,7 @@
   background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0.3) 60%, rgba(255,255,255,0.7));
   border-radius: 2px;
   transform: rotate(22.6deg) scale(var(--scale, 1));
+  opacity: 0;
   animation: meteor-travel linear infinite;
 }
 
@@ -550,10 +622,10 @@
     opacity: 0;
   }
   3% {
-    opacity: 1;
+    opacity: var(--initial-opacity, 0.7);
   }
   90% {
-    opacity: 0.3;
+    opacity: calc(var(--initial-opacity, 0.7) * 0.4);
   }
   100% {
     transform: translate(var(--travel-x), var(--travel-y)) rotate(22.6deg) scale(var(--scale, 1));
@@ -625,5 +697,302 @@
   }
   100% {
     opacity: 1;
+  }
+}
+
+/* ===== Fade Out UI ===== */
+.fade-out-up {
+  animation: fade-out-up 1200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fade-out-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}
+
+/* ===== Telescope View ===== */
+.telescope-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #000;
+  overflow: hidden;
+  perspective: 1200px;
+}
+
+/* ---- Scene wrapper ---- */
+.telescope-scene-wrap {
+  position: absolute;
+  inset: 0;
+}
+
+/* Night sky background */
+.telescope-sky-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #0d0a20 0%, #06050f 100%);
+}
+
+/* ---- First-person telescope — tilting cylinder ---- */
+.telescope-firstperson {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  width: 300px;
+  height: 500px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+}
+
+/* Cylinder — tube with circular front face */
+.scope-cylinder {
+  width: 200px;
+  height: 450px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform-origin: center center;
+}
+
+/* Cylinder front circle — the opening you look into */
+.scope-cylinder::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #0a0a1a 0%, #1a1a2a 40%, #000 100%);
+  border: 12px solid;
+  border-color: linear-gradient(135deg, #3a3a3a, #5a5a5a, #3a3a3a);
+  box-shadow:
+    0 0 30px rgba(0,0,0,0.8),
+    inset 0 0 40px rgba(0,0,0,0.7),
+    inset 0 0 20px rgba(10, 10, 40, 0.6);
+  z-index: 2;
+}
+
+/* Cylinder body — metallic tube */
+.scope-cylinder::after {
+  content: '';
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  height: 400px;
+  background: linear-gradient(
+    to right,
+    #1a1a1a 0%,
+    #3a3a3a 20%,
+    #4a4a4a 40%,
+    #555 50%,
+    #4a4a4a 60%,
+    #3a3a3a 80%,
+    #1a1a1a 100%
+  );
+  border-radius: 8px;
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.5),
+    0 0 40px rgba(0,0,0,0.6);
+  z-index: 1;
+}
+
+/* ---- Phase 1: Pan up — cylinder tilts from angled upward to eye level ---- */
+.telescope-scene-wrap.pan-up {
+  animation: scene-fade-in 800ms ease-out forwards;
+}
+
+/* Cylinder starts tilted upward, gradually straightens to face viewer */
+.telescope-scene-wrap.pan-up .scope-cylinder {
+  animation: cylinder-tilt-to-eye 2800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes scene-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Cylinder tilts from pointing upward to straight-on */
+@keyframes cylinder-tilt-to-eye {
+  0% {
+    transform: rotateX(-75deg) translateY(100px);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotateX(0deg) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ---- Phase 2: Zoom into the cylinder opening ---- */
+.telescope-scene-wrap.zoom-lens {
+  animation: zoom-into-lens 2500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transform-origin: 50% 50%;
+}
+
+/* Keep final orientation during zoom */
+.telescope-scene-wrap.zoom-lens .scope-cylinder {
+  transform: rotateX(0deg) translateY(0);
+}
+
+@keyframes zoom-into-lens {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(6);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(35);
+    opacity: 0;
+  }
+}
+
+/* ---- Lens view (sky through telescope) ---- */
+.lens-view-container {
+  position: absolute;
+  inset: 0;
+  animation: lens-view-fade-in 1200ms ease-out forwards;
+}
+
+@keyframes lens-view-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.lens-sky {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #0d0a20 0%, #06050f 100%);
+}
+
+.lens-star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  opacity: 0;
+  animation: lens-star-twinkle ease-in-out infinite;
+}
+
+@keyframes lens-star-twinkle {
+  0%, 100% {
+    opacity: 0.05;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.2);
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+  }
+}
+
+/* Circular vignette — completely solid ring */
+.lens-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    transparent 58%,
+    #2a2a2a 62%,
+    #3a3a3a 65%,
+    #4a4a4a 67%,
+    #3a3a3a 70%,
+    #2a2a2a 74%,
+    #1a1a1a 80%,
+    #0a0a0a 90%,
+    #000 100%
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ---- Constellation drawing ---- */
+.constellation-svg {
+  position: absolute;
+  inset: 10% 15%;
+  width: 70%;
+  height: 80%;
+  z-index: 5;
+}
+
+.constellation-line {
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 0.15;
+  stroke-linecap: round;
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  animation: draw-line 0.8s ease-out forwards;
+}
+
+@keyframes draw-line {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.constellation-dot {
+  fill: white;
+  opacity: 0;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8));
+  animation: constellation-dot-appear 0.5s ease-out forwards;
+}
+
+@keyframes constellation-dot-appear {
+  0% {
+    opacity: 0;
+    r: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ---- Searching text at bottom ---- */
+.lens-search-text {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  animation: search-text-pulse 3s ease-in-out infinite;
+  user-select: none;
+}
+
+.lens-search-icon {
+  font-size: 1.2rem;
+  filter: grayscale(1) brightness(2);
+}
+
+@keyframes search-text-pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.85;
   }
 }

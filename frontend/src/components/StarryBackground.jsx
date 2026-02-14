@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-const MAX_STARS = 15;
+const MAX_STARS = 30;
 const METEOR_ANGLE_DEG = 22.6;
 const METEOR_ANGLE_RAD = (METEOR_ANGLE_DEG * Math.PI) / 180;
-// Delay meteors until after main screen is fully visible
-const METEOR_INITIAL_DELAY = 1.5; // seconds
+// Delay meteors until after main screen is fully visible (sidebar animations take ~1s)
+const METEOR_INITIAL_DELAY = 2.5; // seconds
 
 function createStar(id) {
   const pulseDuration = 3 + Math.random() * 3;
@@ -28,14 +28,16 @@ function createMeteor(id) {
 
   const fromTop = Math.random() > 0.5;
 
-  // Random start position along top edge or left edge (just offscreen)
+  // Random start position along top 80% or left 80% edge
   let startX, startY;
   if (fromTop) {
-    startX = Math.random() * screenW;
-    startY = -20;
+    // Spawn from top 80% of screen width
+    startX = -100 + Math.random() * (screenW * 0.8 + 100);
+    startY = -50 - Math.random() * 50; // -50 to -100
   } else {
-    startX = -20;
-    startY = Math.random() * screenH;
+    // Spawn from left 80% of screen height
+    startX = -50 - Math.random() * 50; // -50 to -100
+    startY = -100 + Math.random() * (screenH * 0.8 + 100);
   }
 
   // At 22.6°, the meteor moves at angle from the horizontal
@@ -57,7 +59,7 @@ function createMeteor(id) {
   return {
     id,
     duration: 5 + Math.random() * 3,
-    delay: METEOR_INITIAL_DELAY + Math.random() * 12,
+    delay: METEOR_INITIAL_DELAY + Math.random() * 18,
     initialOpacity: 0.3 + Math.random() * 0.7,
     scale: 0.5 + Math.random() * 0.9,
     startX,
@@ -67,7 +69,7 @@ function createMeteor(id) {
   };
 }
 
-function StarryBackground() {
+function StarryBackground({ hideMeteors = false }) {
   const nextId = useRef(0);
   const [twinkleStars, setTwinkleStars] = useState(() => {
     const stars = [];
@@ -95,13 +97,36 @@ function StarryBackground() {
     return () => clearInterval(interval);
   }, []);
 
-  const [meteors] = useState(() => {
-    const m = [];
-    for (let i = 0; i < 12; i++) {
-      m.push(createMeteor(i));
-    }
-    return m;
-  });
+  const [meteors, setMeteors] = useState([]);
+  const meteorIdRef = useRef(0);
+
+  // Delay meteor generation until after sidebar animations complete
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const m = [];
+      for (let i = 0; i < 8; i++) {
+        m.push(createMeteor(meteorIdRef.current++));
+      }
+      setMeteors(m);
+    }, METEOR_INITIAL_DELAY * 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Regenerate each meteor individually after its animation completes
+  useEffect(() => {
+    if (meteors.length === 0) return;
+    
+    const timers = meteors.map((meteor) => {
+      const totalDuration = (meteor.delay + meteor.duration) * 1000;
+      return setTimeout(() => {
+        setMeteors(prev => 
+          prev.map(m => m.id === meteor.id ? createMeteor(meteorIdRef.current++) : m)
+        );
+      }, totalDuration);
+    });
+    
+    return () => timers.forEach(clearTimeout);
+  }, [meteors]);
 
   return (
     <div className="starry-background">
@@ -120,7 +145,7 @@ function StarryBackground() {
           }}
         />
       ))}
-      {meteors.map(m => (
+      {!hideMeteors && meteors.map(m => (
         <div
           key={m.id}
           className="meteor"
@@ -129,10 +154,10 @@ function StarryBackground() {
             left: `${m.startX}px`,
             animationDelay: `${m.delay}s`,
             animationDuration: `${m.duration}s`,
-            opacity: m.initialOpacity,
             '--travel-x': `${m.travelX}px`,
             '--travel-y': `${m.travelY}px`,
             '--scale': m.scale,
+            '--initial-opacity': m.initialOpacity,
           }}
         />
       ))}
