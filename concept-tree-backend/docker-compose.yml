@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: concept-tree-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: concept-tree
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - concept-tree-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  flask:
+    build:
+      context: ./flask-backend
+      dockerfile: Dockerfile
+    container_name: concept-tree-flask
+    ports:
+      - "5000:5000"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/concept-tree
+      FLASK_ENV: development
+      FLASK_DEBUG: true
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - concept-tree-network
+    volumes:
+      - ./flask-backend:/app
+    command: python app.py
+
+  node:
+    build:
+      context: ./node-server
+      dockerfile: Dockerfile
+    container_name: concept-tree-node
+    ports:
+      - "3000:3000"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/concept-tree
+      NODE_ENV: development
+      FLASK_API_URL: http://flask:5000
+      LOG_LEVEL: debug
+    depends_on:
+      - flask
+      - mongodb
+    networks:
+      - concept-tree-network
+    volumes:
+      - ./node-server:/app
+      - /app/node_modules
+    command: npm run dev
+
+networks:
+  concept-tree-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+
+# Usage:
+# docker-compose up              # Start all services
+# docker-compose down            # Stop all services
+# docker-compose logs -f         # View logs
+# docker-compose logs flask      # View Flask logs only

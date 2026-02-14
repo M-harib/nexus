@@ -1,0 +1,233 @@
+{
+  "examples": [
+    {
+      "title": "Create a Concept with no Prerequisites",
+      "method": "POST",
+      "endpoint": "/api/concepts",
+      "body": {
+        "concept_id": "calculus_limits",
+        "title": "Understanding Limits",
+        "description": "Basic concepts of limits in calculus",
+        "category": "Calculus",
+        "difficulty_level": 2,
+        "prerequisites": []
+      }
+    },
+    {
+      "title": "Create a Concept with Prerequisites",
+      "method": "POST",
+      "endpoint": "/api/concepts",
+      "body": {
+        "concept_id": "calculus_derivatives",
+        "title": "Derivatives",
+        "description": "Learn derivatives and differentiation",
+        "category": "Calculus",
+        "difficulty_level": 3,
+        "prerequisites": ["calculus_limits"]
+      }
+    },
+    {
+      "title": "Create Complex Prerequisite Chain",
+      "method": "POST",
+      "endpoint": "/api/concepts",
+      "body": {
+        "concept_id": "multivariable_calculus",
+        "title": "Multivariable Calculus",
+        "description": "Calculus with multiple variables",
+        "category": "Calculus",
+        "difficulty_level": 4,
+        "prerequisites": ["calculus_derivatives", "linear_algebra_basics"]
+      }
+    },
+    {
+      "title": "List All Concepts in Category",
+      "method": "GET",
+      "endpoint": "/api/concepts?category=Calculus",
+      "response": {
+        "total": 3,
+        "concepts": [
+          {
+            "concept_id": "calculus_limits",
+            "title": "Understanding Limits",
+            "category": "Calculus",
+            "difficulty_level": 2,
+            "prerequisites": []
+          }
+        ]
+      }
+    },
+    {
+      "title": "Get Full Dependency Tree",
+      "method": "GET",
+      "endpoint": "/api/concepts/multivariable_calculus/dependencies",
+      "response": {
+        "concept_id": "multivariable_calculus",
+        "title": "Multivariable Calculus",
+        "prerequisites": [
+          {
+            "concept_id": "calculus_derivatives",
+            "title": "Derivatives",
+            "prerequisites": [
+              {
+                "concept_id": "calculus_limits",
+                "title": "Understanding Limits",
+                "prerequisites": []
+              }
+            ]
+          },
+          {
+            "concept_id": "linear_algebra_basics",
+            "title": "Linear Algebra Basics",
+            "prerequisites": []
+          }
+        ]
+      }
+    },
+    {
+      "title": "Track User Starting a Concept",
+      "method": "POST",
+      "endpoint": "/api/users/alice/skills/start",
+      "body": {
+        "concept_id": "calculus_limits"
+      }
+    },
+    {
+      "title": "Mark Concept as Completed",
+      "method": "POST",
+      "endpoint": "/api/users/alice/skills/complete",
+      "body": {
+        "concept_id": "calculus_limits"
+      }
+    },
+    {
+      "title": "Get User Progress",
+      "method": "GET",
+      "endpoint": "/api/users/alice/skills",
+      "response": {
+        "user_id": "alice",
+        "skill_tree_name": "default",
+        "stats": {
+          "completed": 1,
+          "in_progress": 0,
+          "progress_percentage": 100.0
+        },
+        "completed_concepts": [
+          {
+            "concept_id": "calculus_limits",
+            "title": "Understanding Limits",
+            "category": "Calculus",
+            "completed_at": "2024-01-15T10:30:00"
+          }
+        ],
+        "in_progress_concepts": []
+      }
+    },
+    {
+      "title": "Get Available Concepts for User",
+      "method": "GET",
+      "endpoint": "/api/users/alice/available-concepts",
+      "response": {
+        "user_id": "alice",
+        "available_count": 2,
+        "concepts": [
+          {
+            "concept_id": "calculus_derivatives",
+            "title": "Derivatives",
+            "category": "Calculus",
+            "difficulty_level": 3,
+            "prerequisites": ["calculus_limits"]
+          }
+        ]
+      }
+    },
+    {
+      "title": "Get Blocked Concepts (Locked by Dependencies)",
+      "method": "GET",
+      "endpoint": "/api/users/alice/blocked-concepts",
+      "response": {
+        "user_id": "alice",
+        "blocked_count": 1,
+        "concepts": [
+          {
+            "concept_id": "multivariable_calculus",
+            "title": "Multivariable Calculus",
+            "category": "Calculus",
+            "blocked_by": [
+              {
+                "concept_id": "linear_algebra_basics",
+                "title": "Linear Algebra Basics"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "title": "Export User Skill Tree",
+      "method": "GET",
+      "endpoint": "/api/users/alice/export",
+      "response": {
+        "user_id": "alice",
+        "skill_tree_name": "default",
+        "completed_concepts": [
+          {
+            "concept_id": "calculus_limits",
+            "title": "Understanding Limits",
+            "completed_at": "2024-01-15T10:30:00"
+          }
+        ],
+        "in_progress_concepts": [],
+        "exported_at": "2024-01-15T15:45:30"
+      }
+    },
+    {
+      "title": "Import User Skill Tree",
+      "method": "POST",
+      "endpoint": "/api/users/bob/import",
+      "body": {
+        "completed_concepts": [
+          {
+            "concept_id": "calculus_limits",
+            "title": "Understanding Limits",
+            "completed_at": "2024-01-15T10:30:00"
+          }
+        ],
+        "in_progress_concepts": []
+      }
+    },
+    {
+      "title": "Get Concepts Dependent on a Concept",
+      "method": "GET",
+      "endpoint": "/api/concepts/calculus_limits/dependents",
+      "response": {
+        "concept_id": "calculus_limits",
+        "title": "Understanding Limits",
+        "dependent_concepts": ["calculus_derivatives"],
+        "count": 1
+      }
+    },
+    {
+      "title": "Get Complete Category Graph",
+      "method": "GET",
+      "endpoint": "/api/concepts/category/Calculus/tree",
+      "response": {
+        "category": "Calculus",
+        "total_concepts": 3,
+        "concepts": {
+          "calculus_limits": {
+            "title": "Understanding Limits",
+            "difficulty_level": 2,
+            "prerequisites": [],
+            "dependents": ["calculus_derivatives"]
+          },
+          "calculus_derivatives": {
+            "title": "Derivatives",
+            "difficulty_level": 3,
+            "prerequisites": ["calculus_limits"],
+            "dependents": ["multivariable_calculus"]
+          }
+        }
+      }
+    }
+  ]
+}
