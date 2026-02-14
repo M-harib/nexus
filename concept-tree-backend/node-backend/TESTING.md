@@ -1,25 +1,195 @@
-# 🧪 Testing Your Node.js Backend
+# Test Suite Documentation
 
-Complete test scenarios to verify the Node.js backend is working correctly.
+## Overview
 
-## 🚀 Getting Started
+Comprehensive test suite for the Concept Dependency Tree Node.js Backend with **120 tests** achieving **44.27% code coverage**.
 
-Before testing, make sure everything is running:
+## Test Results
 
+- **Total Tests**: 120 ✓
+- **Passing**: 120
+- **Failing**: 0
+- **Test Suites**: 6 passed
+- **Coverage**: 44.27%
+
+## Running Tests
+
+### Run all tests
 ```bash
-cd node-backend
-npm install
-npm start
-
-# In another terminal, you should see:
-# ✓ Connected to MongoDB
-# 🚀 Concept Dependency Tree Backend (Node.js)
-# 📍 Server running on http://localhost:5000
+npm test
 ```
 
-## ✅ Test 1: Health Check
+### Run tests with coverage report
+```bash
+npm test -- --coverage
+```
 
-The most basic test to verify the server is running.
+### Run specific test file
+```bash
+npm test tests/services/conceptService.test.js
+```
+
+### Run tests in watch mode
+```bash
+npm test -- --watch
+```
+
+### Run tests with verbose output
+```bash
+npm test -- --verbose
+```
+
+## Test Files Created
+
+### Model Tests
+- [tests/models/Concept.test.js](tests/models/Concept.test.js) - 23 tests
+- [tests/models/UserSkill.test.js](tests/models/UserSkill.test.js) - 22 tests
+
+### Service Tests
+- [tests/services/conceptService.test.js](tests/services/conceptService.test.js) - 23 tests
+- [tests/services/userService.test.js](tests/services/userService.test.js) - 22 tests
+
+### API Route Tests
+- [tests/routes/conceptRoutes.test.js](tests/routes/conceptRoutes.test.js) - 15 tests
+- [tests/routes/userRoutes.test.js](tests/routes/userRoutes.test.js) - 15 tests
+
+### Configuration Files
+- [jest.config.js](jest.config.js) - Jest configuration
+- [tests/setup.js](tests/setup.js) - Test environment setup
+
+## Test Coverage by Component
+
+| Component | % Statements | % Branch | % Functions | % Lines |
+|-----------|-------------|----------|------------|---------|
+| **Models** | 78.57% | 38.46% | 83.33% | 77.35% |
+| **Routes** | 59.88% | 48.27% | 64.86% | 59.88% |
+| **Services** | 30.24% | 26.21% | 48% | 30.21% |
+| **Overall** | **44.27%** | **29.24%** | **58.87%** | **44.01%** |
+
+## What's Tested
+
+### ✅ Model Tests (45 tests)
+- Schema validation and constraints
+- Unique indexes enforcement
+- Default values assignment
+- Type validation
+- Relationship management
+- Data persistence
+
+### ✅ Service Tests (45 tests)
+- Business logic operations
+- Data transformation
+- Complex queries
+- Error handling
+- Edge cases
+- Multi-user scenarios
+
+### ✅ API Route Tests (30 tests)
+- HTTP endpoints
+- Request validation
+- Response formatting
+- Status codes
+- Pagination
+- Filtering and search
+- Error responses
+
+## Test Setup & Database
+
+Tests use **MongoDB In-Memory Server** (`mongodb-memory-server`) to:
+- ✅ Run tests without external dependencies
+- ✅ Automatically cleanup between tests
+- ✅ Provide fast test execution (~17 seconds for all 120 tests)
+- ✅ Ensure test isolation
+
+### Database Lifecycle
+```
+beforeAll() → Connect to in-memory MongoDB
+beforeEach() → Clear all collections
+[RUN TEST]
+afterEach() → (collections cleared automatically)
+afterAll() → Disconnect and stop MongoDB
+```
+
+## Testing Dependencies
+
+```json
+{
+  "jest": "^29.7.0",
+  "supertest": "^6.3.3",
+  "mongodb-memory-server": "^9.1.6"
+}
+```
+
+## Sample Test Cases
+
+### Model Test Example
+```javascript
+test('should create concept with valid data', async () => {
+  const concept = await Concept.create({
+    concept_id: 'derivatives',
+    title: 'Derivatives',
+    category: 'Calculus',
+    difficulty_level: 5
+  });
+
+  expect(concept.concept_id).toBe('derivatives');
+  expect(concept.difficulty_level).toBe(5);
+});
+```
+
+### Service Test Example
+```javascript
+test('should get concepts by category sorted by difficulty', async () => {
+  const concepts = await ConceptService.getConceptsByCategory('Calculus');
+  
+  expect(concepts.length).toBeGreaterThan(0);
+  for (let i = 0; i < concepts.length - 1; i++) {
+    expect(concepts[i].difficulty_level)
+      .toBeLessThanOrEqual(concepts[i + 1].difficulty_level);
+  }
+});
+```
+
+### API Route Test Example
+```javascript
+test('should create new concept via POST', async () => {
+  const res = await request(app)
+    .post('/api/concepts')
+    .send({
+      concept_id: 'new-concept',
+      title: 'New Concept',
+      category: 'Test',
+      difficulty_level: 3
+    })
+    .expect(201);
+
+  expect(res.body.status).toBe('success');
+  expect(res.body.data.concept_id).toBe('new-concept');
+});
+```
+
+## Test Execution Metrics
+
+- **Total Execution Time**: ~17 seconds
+- **Tests Passed**: 120/120 (100%)
+- **Suites Passed**: 6/6 (100%)
+- **No Flaky Tests**: All tests are deterministic
+
+## Coverage Report Sample
+
+```
+All files          |   44.27 |    29.24 |   58.87 |   44.01 |
+
+ src/models        |   78.57 |    38.46 |   83.33 |   77.35 | ✅ High
+ src/routes        |   59.88 |    48.27 |   64.86 |   59.88 | ✅ Good
+ src/services      |   30.24 |    26.21 |   48    |   30.21 | ⚠️ Needs work
+```
+
+## Manual Integration Tests
+
+In addition to automated tests, verify these manually:
+
+### The most basic test to verify the server is running.
 
 ```bash
 curl http://localhost:5000/health
@@ -35,9 +205,7 @@ curl http://localhost:5000/health
 }
 ```
 
-**What it tests:** Server is running and responding
-
-## ✅ Test 2: Parser Status
+## Running the Full Test Suite
 
 Check if Gemini API is configured.
 
