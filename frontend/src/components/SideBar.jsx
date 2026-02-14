@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const Sidebar = ({isHovered, setIsHovered}) => {
+const Sidebar = ({isHovered, setIsHovered, onMenuClick}) => {
     
     
     const menuItems = [
