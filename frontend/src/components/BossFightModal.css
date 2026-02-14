@@ -1,0 +1,445 @@
+/* BossFightModal.css */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 20, 60, 0.95));
+  border: 2px solid rgba(138, 43, 226, 0.5);
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(138, 43, 226, 0.4);
+  animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: scale(0.8) translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 24px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: rgba(255, 100, 100, 0.3);
+  border-color: rgba(255, 100, 100, 0.6);
+  transform: rotate(90deg);
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.modal-header h2 {
+  font-size: 32px;
+  font-weight: bold;
+  color: #ff4444;
+  margin: 0 0 10px 0;
+  text-shadow: 0 0 20px rgba(255, 68, 68, 0.8);
+  letter-spacing: 2px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    text-shadow: 0 0 20px rgba(255, 68, 68, 0.8);
+  }
+  50% {
+    text-shadow: 0 0 30px rgba(255, 68, 68, 1);
+  }
+}
+
+.modal-header h3 {
+  font-size: 24px;
+  color: #00ddff;
+  margin: 10px 0;
+}
+
+.modal-header .description {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 10px 0 0 0;
+}
+
+.stage-content {
+  text-align: center;
+}
+
+.boss-avatar {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ai-orb {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(138, 43, 226, 0.8), rgba(75, 0, 130, 0.9));
+  border: 3px solid rgba(138, 43, 226, 0.6);
+  box-shadow: 
+    0 0 30px rgba(138, 43, 226, 0.8),
+    0 0 60px rgba(138, 43, 226, 0.5),
+    inset 0 0 30px rgba(255, 255, 255, 0.2);
+  animation: orbFloat 3s ease-in-out infinite, orbGlow 2s ease-in-out infinite;
+  position: relative;
+}
+
+.ai-orb::before {
+  content: '';
+  position: absolute;
+  top: 20%;
+  left: 30%;
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  filter: blur(8px);
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes orbFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes orbGlow {
+  0%, 100% {
+    box-shadow: 
+      0 0 30px rgba(138, 43, 226, 0.8),
+      0 0 60px rgba(138, 43, 226, 0.5),
+      inset 0 0 30px rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 0 40px rgba(138, 43, 226, 1),
+      0 0 80px rgba(138, 43, 226, 0.7),
+      inset 0 0 40px rgba(255, 255, 255, 0.3);
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.ai-message {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 4px solid #8a2be2;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.ai-message strong {
+  color: #00ddff;
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #8a2be2, #4b0082);
+  border: 2px solid rgba(138, 43, 226, 0.8);
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 12px 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.5);
+}
+
+.start-btn:hover {
+  background: linear-gradient(135deg, #9a3bf2, #5b1092);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.7);
+}
+
+.start-btn:active {
+  transform: translateY(0);
+}
+
+.explanation-input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  font-family: monospace;
+  font-size: 14px;
+  resize: vertical;
+  margin-top: 15px;
+  transition: border-color 0.3s;
+}
+
+.explanation-input:focus {
+  outline: none;
+  border-color: #8a2be2;
+  box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+}
+
+.analyzing {
+  padding: 40px;
+  text-align: center;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  border: 4px solid rgba(138, 43, 226, 0.2);
+  border-top-color: #8a2be2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status-text {
+  font-size: 18px;
+  color: #00ddff;
+  font-weight: bold;
+  margin: 20px 0;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.scan-lines {
+  position: relative;
+  height: 100px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.scan-lines::before {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00ddff, transparent);
+  animation: scanLine 2s linear infinite;
+}
+
+@keyframes scanLine {
+  to {
+    top: 100%;
+  }
+}
+
+.result {
+  padding: 20px;
+  border-radius: 12px;
+  animation: resultAppear 0.5s ease-out;
+}
+
+@keyframes resultAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.result.success {
+  background: rgba(0, 255, 136, 0.1);
+  border: 2px solid rgba(0, 255, 136, 0.5);
+}
+
+.result.failure {
+  background: rgba(255, 68, 68, 0.1);
+  border: 2px solid rgba(255, 68, 68, 0.5);
+}
+
+.result-icon {
+  font-size: 72px;
+  margin: 20px 0;
+  animation: iconBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.result.success .result-icon {
+  color: #00ff88;
+}
+
+.result.failure .result-icon {
+  color: #ff4444;
+}
+
+@keyframes iconBounce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.result h3 {
+  font-size: 28px;
+  margin: 10px 0 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.result.success h3 {
+  color: #00ff88;
+}
+
+.result.failure h3 {
+  color: #ff4444;
+}
+
+.transcript-box,
+.feedback-box {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0;
+  text-align: left;
+}
+
+.transcript-box strong,
+.feedback-box strong {
+  display: block;
+  color: #00ddff;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.transcript-box p,
+.feedback-box p {
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  margin: 0;
+  font-size: 14px;
+}
+
+.complete-btn {
+  background: linear-gradient(135deg, #00ff88, #00cc66);
+  border: 2px solid rgba(0, 255, 136, 0.8);
+  border-radius: 8px;
+  color: #001a0f;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 14px 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.5);
+  margin-top: 20px;
+  width: 100%;
+}
+
+.complete-btn:hover {
+  background: linear-gradient(135deg, #00ff99, #00dd77);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 255, 136, 0.7);
+}
+
+.complete-btn:active {
+  transform: translateY(0);
+}
+
+/* Scrollbar styling */
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgba(138, 43, 226, 0.6);
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(138, 43, 226, 0.8);
+}
