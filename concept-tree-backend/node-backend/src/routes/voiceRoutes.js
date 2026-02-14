@@ -13,28 +13,29 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
 
     // ElevenLabs “Create transcript” (batch STT)
     const form = new FormData();
-
-    // model_id names come from ElevenLabs docs (Scribe v2 for batch, Scribe v2 Realtime for WS). :contentReference[oaicite:4]{index=4}
     form.append('model_id', 'scribe_v2');
 
-    // Attach audio file
-    const blob = new Blob([req.file.buffer], { type: req.file.mimetype });
-    form.append('file', blob, req.file.originalname || 'audio.webm');
+    // default to audio/wav if mimetype missing
+    const mime = req.file.mimetype && req.file.mimetype !== 'application/octet-stream'
+      ? req.file.mimetype
+      : 'audio/wav';
 
-    const resp = await fetch('https://api.elevenlabs.io/v1/speech-to-text/convert', {
+    const blob = new Blob([req.file.buffer], { type: mime });
+    form.append('file', blob, req.file.originalname || 'audio.wav');
+
+    const resp = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
       headers: { 'xi-api-key': apiKey },
       body: form
     });
 
+    const raw = await resp.text();
+
     if (!resp.ok) {
-      const errText = await resp.text();
-      return res.status(resp.status).json({ error: errText });
+      return res.status(resp.status).json({ error: raw || `ElevenLabs error ${resp.status}` });
     }
 
-    const data = await resp.json();
-    // The response includes transcript text (field names depend on API response)
-    return res.json({ data });
+    return res.json({ data: JSON.parse(raw) });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }

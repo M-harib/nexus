@@ -13,6 +13,7 @@ const config = require('./config');
 const conceptRoutes = require('./routes/conceptRoutes');
 const userRoutes = require('./routes/userRoutes');
 const parserRoutes = require('./routes/parserRoutes');
+const voiceRoutes = require('./routes/voiceRoutes');
 
 // Initialize Express app
 const app = express();
@@ -42,6 +43,7 @@ app.get('/health', (req, res) => {
 app.use('/api/concepts', conceptRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/parser', parserRoutes);
+app.use('/api/voice', voiceRoutes);
 
 // 404 handler
 app.use((req, res) => {
