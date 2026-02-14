@@ -192,15 +192,22 @@ app.post('/api/node/:nodeId/complete', (req, res) => {
   });
 });
 
-// Verify explanation (simulated AI check)
-app.post('/api/verify', (req, res) => {
+// Verify explanation with Gemini AI
+app.post('/api/verify', async (req, res) => {
   const { nodeId, explanation, audioData } = req.body;
+  
+  console.log('\n========================================');
+  console.log('🎯 BOSS FIGHT VERIFICATION REQUEST');
+  console.log('========================================');
+  console.log('Node ID:', nodeId);
+  console.log('Explanation length:', explanation ? explanation.length : 0);
   
   // Find the node
   const nodeIndex = knowledgeGraph.nodes.findIndex(n => n.id === nodeId);
   const node = knowledgeGraph.nodes[nodeIndex];
   
   if (!node) {
+    console.log('❌ Node not found:', nodeId);
     return res.status(404).json({
       success: false,
       message: 'Node not found'
@@ -215,65 +222,61 @@ app.post('/api/verify', (req, res) => {
     });
   }
 
-  // Simulated AI verification (in production, this would call an LLM)
-  const wordCount = explanation ? explanation.split(' ').length : 0;
-  const hasKeywords = explanation && explanation.toLowerCase().includes('data');
-  
-  // Simple scoring logic
-  let score = 0;
-  let feedback = [];
-  
-  if (wordCount > 20) {
-    score += 40;
-    feedback.push('Good explanation length');
-  } else {
-    feedback.push('Try to explain in more detail');
+  if (!explanation || explanation.trim().length < 10) {
+    console.log('❌ Explanation too short or missing');
+    return res.status(400).json({
+      success: false,
+      message: 'Please provide a detailed explanation (at least 10 characters)'
+    });
   }
-  
-  if (hasKeywords) {
-    score += 30;
-    feedback.push('Used relevant terminology');
-  }
-  
-  // Random bonus (simulating AI confidence)
-  score += Math.floor(Math.random() * 30);
 
-  const previousBestScore = node.status > STATUS.ACTIVE ? node.status : null;
-  const bestScore = previousBestScore === null ? null : Math.max(previousBestScore, score);
-  const scoreDelta = previousBestScore === null ? null : score - previousBestScore;
-  const scoreDeltaPercent = previousBestScore
-    ? Number((((score - previousBestScore) / previousBestScore) * 100).toFixed(2))
-    : null;
-  const improvedBest = previousBestScore === null ? true : score > previousBestScore;
-  
-  const passed = score >= 70;
+  try {
+    console.log('🤖 Calling Gemini AI for verification...');
+    const result = await verifyExplanationWithAI(node, explanation);
+    
+    console.log('✅ AI Verification complete!');
+    console.log('Score:', result.score);
+    console.log('Passed:', result.passed);
 
-  // Persist best score only for already-mastered nodes; active-node completion happens in /complete.
-  if (previousBestScore !== null) {
-    knowledgeGraph.nodes[nodeIndex].status = bestScore;
+    const previousBestScore = node.status > STATUS.ACTIVE ? node.status : null;
+    const bestScore = previousBestScore === null ? null : Math.max(previousBestScore, result.score);
+    const scoreDelta = previousBestScore === null ? null : result.score - previousBestScore;
+    const scoreDeltaPercent = previousBestScore
+      ? Number((((result.score - previousBestScore) / previousBestScore) * 100).toFixed(2))
+      : null;
+    const improvedBest = previousBestScore === null ? true : result.score > previousBestScore;
+    
+    // Persist best score only for already-mastered nodes; active-node completion happens in /complete.
+    if (previousBestScore !== null) {
+      knowledgeGraph.nodes[nodeIndex].status = bestScore;
+    }
+    userProgress.completedChallenges += 1;
+    
+    console.log('========================================\n');
+    
+    res.json({
+      success: true,
+      passed: result.passed,
+      score: result.score,
+      attemptScore: result.score,
+      previousBestScore,
+      bestScore: bestScore === null ? result.score : bestScore,
+      scoreDelta,
+      scoreDeltaPercent,
+      improvedBest,
+      feedback: result.feedback,
+      message: result.message,
+      suggestions: result.suggestions
+    });
+  } catch (error) {
+    console.error('❌ Verification failed:', error.message);
+    console.log('========================================\n');
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify explanation',
+      error: error.message
+    });
   }
-  userProgress.completedChallenges += 1;
-  
-  res.json({
-    success: true,
-    passed,
-    score,
-    attemptScore: score,
-    previousBestScore,
-    bestScore: bestScore === null ? score : bestScore,
-    scoreDelta,
-    scoreDeltaPercent,
-    improvedBest,
-    feedback: feedback.join('. '),
-    message: passed 
-      ? `Excellent! You clearly understand ${node.label}.` 
-      : `Not quite there yet. Try explaining ${node.label} with more depth.`,
-    suggestions: !passed ? [
-      'Focus on the core concepts',
-      'Use analogies to explain complex ideas',
-      'Give specific examples'
-    ] : []
-  });
 });
 
 // Reset progress (for testing)
@@ -504,6 +507,177 @@ function generateGenericTree(topic) {
   
   console.log('✓ Generic tree created with', tree.nodes.length, 'nodes');
   return tree;
+}
+
+// AI-powered function to verify user explanations
+async function verifyExplanationWithAI(node, explanation) {
+  console.log('\n🤖 AI Verification Function Called');
+  console.log('Node:', node.label);
+  console.log('Explanation:', explanation.substring(0, 100) + (explanation.length > 100 ? '...' : ''));
+  
+  // If Gemini API not configured, use fallback scoring
+  if (!model) {
+    console.log('⚠️  Gemini API not configured - using fallback scoring');
+    return fallbackVerification(node, explanation);
+  }
+  
+  console.log('✓ Using Gemini AI for verification');
+  
+  const prompt = `You are an expert educator evaluating a student's understanding of: "${node.label}"
+
+Topic Description: ${node.description}
+
+Student's Explanation:
+"${explanation}"
+
+Your task is to evaluate if the student truly understands this concept. Analyze their explanation for:
+1. Accuracy - Are the facts and concepts correct?
+2. Completeness - Did they cover the key points?
+3. Clarity - Can they explain it in their own words?
+4. Depth - Do they show understanding beyond surface-level?
+
+Provide your evaluation as a JSON object with this exact structure:
+{
+  "score": 75,
+  "passed": true,
+  "feedback": "Good explanation covering key concepts. You demonstrated understanding of...",
+  "strengths": ["Point 1", "Point 2"],
+  "improvements": ["Area to improve 1", "Area to improve 2"]
+}
+
+Scoring guide:
+- 90-100: Excellent, comprehensive understanding
+- 75-89: Good understanding with minor gaps
+- 60-74: Basic understanding but needs more depth
+- Below 60: Insufficient understanding
+
+Pass threshold: 70 or above
+
+Return ONLY valid JSON, no markdown code blocks.`;
+
+  try {
+    console.log('\n📤 Sending verification prompt to Gemini AI...');
+    
+    const result = await model.generateContent(prompt);
+    console.log('📥 Received response from Gemini AI');
+    
+    const response = await result.response;
+    let text = response.text();
+    
+    console.log('\n📄 Raw AI Response:');
+    console.log('─────────────────────────────────────');
+    console.log(text.substring(0, 300) + (text.length > 300 ? '...' : ''));
+    console.log('─────────────────────────────────────');
+    
+    // Clean and extract JSON
+    console.log('\n🧹 Extracting JSON from response...');
+    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error('❌ Could not find valid JSON in AI response');
+      return fallbackVerification(node, explanation);
+    }
+    
+    console.log('🔍 Parsing JSON...');
+    const evaluation = JSON.parse(jsonMatch[0]);
+    console.log('✓ JSON parsed successfully');
+    
+    // Validate structure
+    if (typeof evaluation.score !== 'number' || typeof evaluation.passed !== 'boolean') {
+      console.error('❌ Invalid evaluation structure from AI');
+      return fallbackVerification(node, explanation);
+    }
+    
+    // Ensure score is in valid range
+    evaluation.score = Math.max(0, Math.min(100, evaluation.score));
+    
+    // Build suggestions from improvements
+    const suggestions = evaluation.improvements || [];
+    
+    // Create final message
+    const message = evaluation.passed
+      ? `Excellent! You clearly understand ${node.label.replace(/\n/g, ' ')}. ${evaluation.feedback}`
+      : `Not quite there yet. ${evaluation.feedback}`;
+    
+    console.log('✅ Verification complete!');
+    console.log('Score:', evaluation.score);
+    console.log('Passed:', evaluation.passed);
+    
+    return {
+      score: evaluation.score,
+      passed: evaluation.passed,
+      feedback: evaluation.feedback,
+      message: message,
+      suggestions: suggestions
+    };
+    
+  } catch (error) {
+    console.error('\n❌ AI verification failed!');
+    console.error('Error:', error.message);
+    console.log('\n📄 Falling back to basic verification...');
+    return fallbackVerification(node, explanation);
+  }
+}
+
+// Fallback verification when AI is unavailable
+function fallbackVerification(node, explanation) {
+  console.log('\n📋 Using fallback verification');
+  
+  const wordCount = explanation.split(' ').length;
+  const hasNodeKeywords = node.label.toLowerCase().split(/\s+/).some(word => 
+    word.length > 3 && explanation.toLowerCase().includes(word)
+  );
+  
+  let score = 0;
+  const feedback = [];
+  
+  if (wordCount >= 30) {
+    score += 40;
+    feedback.push('Good explanation length');
+  } else if (wordCount >= 15) {
+    score += 25;
+    feedback.push('Decent length, could be more detailed');
+  } else {
+    score += 10;
+    feedback.push('Explanation is quite brief');
+  }
+  
+  if (hasNodeKeywords) {
+    score += 30;
+    feedback.push('Used relevant terminology');
+  }
+  
+  // Bonus for reasonable length and structure
+  if (explanation.includes('.') || explanation.includes(',')) {
+    score += 15;
+    feedback.push('Well-structured explanation');
+  }
+  
+  // Add some variance
+  score += Math.floor(Math.random() * 15);
+  score = Math.min(100, score);
+  
+  const passed = score >= 70;
+  
+  console.log('✓ Fallback verification complete');
+  console.log('Score:', score);
+  console.log('Passed:', passed);
+  
+  return {
+    score,
+    passed,
+    feedback: feedback.join('. '),
+    message: passed
+      ? `Good job! You demonstrated understanding of ${node.label.replace(/\n/g, ' ')}.`
+      : `Not quite there. Try explaining ${node.label.replace(/\n/g, ' ')} with more depth and detail.`,
+    suggestions: !passed ? [
+      'Focus on the core concepts',
+      'Use analogies or examples',
+      'Explain in your own words',
+      'Cover the key principles'
+    ] : []
+  };
 }
 
 // Error handling
