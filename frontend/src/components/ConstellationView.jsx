@@ -25,12 +25,12 @@ const getNodeBestScore = (node) => {
 const getNodeStyleByStatus = (status) => {
   switch (status) {
     case 'mastered':
-      return { opacity: 1, size: 68, pulseSize: 2.2, shadow: '0 0 34px rgba(255,255,255,1)', rotate: true };
+      return { opacity: 1, size: 76, pulseSize: 2.2, shadow: '0 0 34px rgba(255,255,255,1)', rotate: true };
     case 'active':
-      return { opacity: 0.86, size: 60, pulseSize: 2, shadow: '0 0 26px rgba(255,255,255,0.82)', rotate: true };
+      return { opacity: 0.86, size: 68, pulseSize: 2, shadow: '0 0 26px rgba(255,255,255,0.82)', rotate: true };
     case 'locked':
     default:
-      return { opacity: 0.42, size: 50, pulseSize: 1.2, shadow: '0 0 14px rgba(255,255,255,0.42)', rotate: true };
+      return { opacity: 0.42, size: 58, pulseSize: 1.2, shadow: '0 0 14px rgba(255,255,255,0.42)', rotate: true };
   }
 };
 
@@ -50,7 +50,11 @@ const getNodeMotionProfile = (nodeId) => {
   const rotationDuration = 7 + (hash % 6); // 7..12 sec
   const shimmerDuration = 2.6 + ((hash >>> 3) % 22) / 10; // 2.6..4.7 sec
   const shimmerDelay = ((hash >>> 5) % 14) / 10; // 0..1.3 sec
-  return { dir, swing, rotationDuration, shimmerDuration, shimmerDelay };
+  const driftX = 4 + ((hash >>> 7) % 18) / 10; // 1.6..3.3px
+  const driftY = 4 + ((hash >>> 9) % 18) / 10; // 1.6..3.3px
+  const driftDuration = 6 + ((hash >>> 11) % 24) / 2; // 8.5..20.5 sec
+  const driftDelay = ((hash >>> 13) % 18) / 10; // 0..1.7 sec
+  return { dir, swing, rotationDuration, shimmerDuration, shimmerDelay, driftX, driftY, driftDuration, driftDelay };
 };
 
 const isHexColor = (value) => /^#[0-9a-fA-F]{6}$/.test(String(value || '').trim());
@@ -78,8 +82,96 @@ const getStatusHighlightColor = (status) => {
   if (status === 'active') return '#22c55e';
   return null;
 };
+
+const toEndpointId = (endpoint) => (typeof endpoint === 'object' ? endpoint?.id : endpoint);
+
+const buildConcavePolygonPath = (vertices, outerRadius = 44, innerRadius = 22, cx = 50, cy = 50) => {
+  const points = [];
+  const totalPoints = vertices * 2;
+
+  for (let i = 0; i < totalPoints; i += 1) {
+    const angle = -Math.PI / 2 + (i * Math.PI) / vertices;
+    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+    const x = cx + Math.cos(angle) * radius;
+    const y = cy + Math.sin(angle) * radius;
+    points.push(`${x.toFixed(2)} ${y.toFixed(2)}`);
+  }
+
+  return `M${points[0]} L${points.slice(1).join(' L')} Z`;
+};
+
+const getNodeDepthMap = (graph) => {
+  const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
+  const links = Array.isArray(graph?.links) ? graph.links : [];
+  if (nodes.length === 0) return {};
+
+  const indegree = new Map(nodes.map((node) => [node.id, 0]));
+  const adjacency = new Map(nodes.map((node) => [node.id, []]));
+
+  links.forEach((link) => {
+    const sourceId = toEndpointId(link.source);
+    const targetId = toEndpointId(link.target);
+    if (!sourceId || !targetId) return;
+    if (adjacency.has(sourceId)) adjacency.get(sourceId).push(targetId);
+    indegree.set(targetId, (indegree.get(targetId) || 0) + 1);
+  });
+
+  let roots = nodes.filter((node) => (indegree.get(node.id) || 0) === 0).map((node) => node.id);
+  if (roots.length === 0) {
+    roots = [nodes[0].id];
+  }
+
+  const depthMap = new Map(nodes.map((node) => [node.id, Number.POSITIVE_INFINITY]));
+  const queue = [];
+  roots.forEach((rootId) => {
+    depthMap.set(rootId, 0);
+    queue.push(rootId);
+  });
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    const currentDepth = depthMap.get(current);
+    const children = adjacency.get(current) || [];
+    children.forEach((childId) => {
+      const nextDepth = currentDepth + 1;
+      if (nextDepth < (depthMap.get(childId) ?? Number.POSITIVE_INFINITY)) {
+        depthMap.set(childId, nextDepth);
+        queue.push(childId);
+      }
+    });
+  }
+
+  const finiteDepths = [...depthMap.values()].filter((d) => Number.isFinite(d));
+  const fallbackDepth = finiteDepths.length ? Math.max(...finiteDepths) + 1 : 0;
+
+  const result = {};
+  nodes.forEach((node) => {
+    const depth = depthMap.get(node.id);
+    result[node.id] = Number.isFinite(depth) ? depth : fallbackDepth;
+  });
+  return result;
+};
+
+const getNodeVertexCountMap = (graph) => {
+  const depthMap = getNodeDepthMap(graph);
+  const entries = Object.entries(depthMap);
+  if (entries.length === 0) return {};
+
+  const depths = entries.map(([, depth]) => depth);
+  const minDepth = Math.min(...depths);
+  const maxDepth = Math.max(...depths);
+  const range = Math.max(1, maxDepth - minDepth);
+
+  const vertexCountMap = {};
+  entries.forEach(([nodeId, depth]) => {
+    const t = (depth - minDepth) / range;
+    const quartile = Math.min(3, Math.floor(t * 4));
+    vertexCountMap[nodeId] = 4 + quartile;
+  });
+  return vertexCountMap;
+};
 // Constellation-style node positioning
-function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = false, nodeColor = '#ffffff' }) {
+function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = false, nodeColor = '#ffffff', vertexCount = 4 }) {
   const normalizedStatus = normalizeNodeStatus(node);
   const nodeStyle = getNodeStyleByStatus(normalizedStatus);
   const baseColor = isHexColor(nodeColor) ? nodeColor : '#ffffff';
@@ -87,6 +179,14 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
   const glowColor = shimmerHighlight || baseColor;
   const size = nodeStyle.size;
   const motionProfile = useMemo(() => getNodeMotionProfile(node.id), [node.id]);
+  const primaryPath = useMemo(
+    () => buildConcavePolygonPath(Math.max(4, Math.min(7, vertexCount)), 44, 22),
+    [vertexCount]
+  );
+  const secondaryPath = useMemo(
+    () => buildConcavePolygonPath(Math.max(4, Math.min(7, vertexCount)), 28, 14),
+    [vertexCount]
+  );
 
   return (
     <motion.div
@@ -96,6 +196,8 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
       animate={isUnlocking ? {
         left: `${position.x}%`,
         top: `${position.y}%`,
+        x: 0,
+        y: 0,
         scale: [1, 1.3, 1],
         opacity: 1,
         rotate: 0,
@@ -107,6 +209,8 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
       } : {
         left: `${position.x}%`,
         top: `${position.y}%`,
+        x: [0, motionProfile.driftX, 0, -motionProfile.driftX * 0.7, 0],
+        y: [0, -motionProfile.driftY, 0, motionProfile.driftY * 0.8, 0],
         scale: 1,
         opacity: 1,
         rotate: 0
@@ -119,13 +223,18 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
       } : {
         left: { type: 'spring', damping: 22, mass: 0.8, delay: node.level * 0.03 },
         top: { type: 'spring', damping: 22, mass: 0.8, delay: node.level * 0.03 },
+        x: { duration: motionProfile.driftDuration, ease: 'easeInOut', repeat: Infinity, delay: motionProfile.driftDelay },
+        y: { duration: motionProfile.driftDuration * 0.92, ease: 'easeInOut', repeat: Infinity, delay: motionProfile.driftDelay * 0.8 },
         duration: 1.2,
         delay: node.level * 0.15,
         type: 'spring',
         stiffness: 100
       }}
       whileHover={{ scale: 1.32, transition: { duration: 0.3 } }}
-      onClick={() => onClick(node)}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick(node);
+      }}
     >
       <div
         style={{
@@ -165,7 +274,7 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
             }}
           >
             <motion.path
-              d="M50 6 L58 42 L94 50 L58 58 L50 94 L42 58 L6 50 L42 42 Z"
+              d={primaryPath}
               fill={baseColor}
               opacity={nodeStyle.opacity}
               animate={{
@@ -180,7 +289,7 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
               }}
             />
             <motion.path
-              d="M50 24 L54 46 L76 50 L54 54 L50 76 L46 54 L24 50 L46 46 Z"
+              d={secondaryPath}
               fill={baseColor}
               opacity={nodeStyle.opacity * 0.86}
               animate={{
@@ -195,7 +304,7 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
             />
             {shimmerHighlight && (
               <motion.path
-                d="M50 6 L58 42 L94 50 L58 58 L50 94 L42 58 L6 50 L42 42 Z"
+                d={primaryPath}
                 fill={shimmerHighlight}
                 opacity={0.2}
                 animate={{
@@ -345,7 +454,7 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [], 
   return (
     <svg
       className="absolute inset-0 pointer-events-none"
-      style={{ width: '100%', height: '100%' }}
+      style={{ width: '100%', height: '100%', shapeRendering: 'geometricPrecision' }}
     >
       <defs>
         <filter id="constellation-glow">
@@ -388,14 +497,14 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [], 
         const isAnimating = animatingEdges.includes(i);
         
         // Base edge styling
-        let strokeOpacity = 0.32;
-        let strokeWidth = 5.2;
+        let strokeOpacity = 0.3;
+        let strokeWidth = 2.2;
         let strokeColor = withAlpha(baseColor, 0.55);
         
         const sourceStatus = sourceNode ? normalizeNodeStatus(sourceNode) : 'locked';
         if (sourceStatus === 'mastered' || sourceStatus === 'active') {
-          strokeOpacity = sourceStatus === 'mastered' ? 0.52 : 0.4;
-          strokeWidth = sourceStatus === 'mastered' ? 2.3 : 1.9;
+          strokeOpacity = sourceStatus === 'mastered' ? 0.56 : 0.44;
+          strokeWidth = sourceStatus === 'mastered' ? 2.8 : 2.5;
         }
 
         // Neural animation for newly unlocked edges
@@ -410,6 +519,8 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [], 
                 y2={`${targetPos.y}%`}
                 stroke="#60a5fa"
                 strokeWidth={4}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
                 filter="url(#neural-glow)"
                 initial={{ opacity: 0 }}
                 animate={{
@@ -430,6 +541,8 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [], 
                 y2={`${targetPos.y}%`}
                 stroke="#a78bfa"
                 strokeWidth={2}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
                 initial={{ opacity: 0 }}
                 animate={{
                   opacity: [0, 1, 0.3]
@@ -472,6 +585,8 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [], 
             y2={`${targetPos.y}%`}
             stroke={strokeColor}
             strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
             filter="url(#constellation-glow)"
             initial={{ opacity: 0 }}
             animate={{
@@ -520,9 +635,36 @@ export default function ConstellationView({
     () => FIXED_STARS.filter((star, idx) => idx % 2 === 0),
     []
   );
+  const nodeVertexCounts = useMemo(() => getNodeVertexCountMap(graphData), [graphData]);
   const constellationStarColor = isHexColor(starColor) ? starColor : '#ffffff';
   const constellationStarRgb = hexToRgbString(constellationStarColor);
   const [toast, setToast] = useState(null); // { type: 'success'|'error'|'info', title, lines[] }
+  const selectedNodeConditions = useMemo(() => {
+    if (!selectedNode || !graphData?.links || !graphData?.nodes) {
+      return { requires: [], unlocks: [] };
+    }
+
+    const nodeById = new Map(graphData.nodes.map((n) => [n.id, n]));
+    const requires = graphData.links
+      .filter((link) => toEndpointId(link.target) === selectedNode.id)
+      .map((link) => {
+        const sourceId = toEndpointId(link.source);
+        const sourceNode = nodeById.get(sourceId);
+        return sourceNode ? sourceNode.label.replace('\n', ' ') : sourceId;
+      })
+      .filter(Boolean);
+
+    const unlocks = graphData.links
+      .filter((link) => toEndpointId(link.source) === selectedNode.id)
+      .map((link) => {
+        const targetId = toEndpointId(link.target);
+        const targetNode = nodeById.get(targetId);
+        return targetNode ? targetNode.label.replace('\n', ' ') : targetId;
+      })
+      .filter(Boolean);
+
+    return { requires, unlocks };
+  }, [selectedNode, graphData]);
   
   // Resolve graph from props or backend
   useEffect(() => {
@@ -745,8 +887,7 @@ export default function ConstellationView({
   
   console.log('🎨 Rendering constellation with', graphData.nodes.length, 'nodes');
   
-  // Position nodes in a constellation pattern (top to bottom)
-  // Dynamic positioning based on node levels
+  // Position nodes on a centered diagonal flow (top-left -> bottom-right)
   const nodePositions = {};
   const nodesByLevel = {};
   
@@ -758,28 +899,39 @@ export default function ConstellationView({
     nodesByLevel[node.level].push(node);
   });
   
-  // Calculate positions for each level
-  const maxLevel = Math.max(...graphData.nodes.map(n => n.level));
-  const verticalSpacing = 70 / (maxLevel); // Distribute 70% of height
-  
-  Object.keys(nodesByLevel).forEach(level => {
-    const nodes = nodesByLevel[level];
+  const levelValues = Object.keys(nodesByLevel).map((value) => parseInt(value, 10)).sort((a, b) => a - b);
+  const minLevel = Math.min(...levelValues);
+  const maxLevel = Math.max(...levelValues);
+  const levelRange = Math.max(1, maxLevel - minLevel);
+
+  // Diagonal lane centered in viewport.
+  const laneStart = { x: 24, y: 18 };
+  const laneEnd = { x: 76, y: 82 };
+  // Spread siblings perpendicular to the diagonal.
+  const siblingPerpX = -0.85;
+  const siblingPerpY = 0.85;
+
+  levelValues.forEach((levelNum) => {
+    const nodes = nodesByLevel[levelNum] || [];
     const count = nodes.length;
-    const levelNum = parseInt(level);
-    
-    // Vertical position based on level
-    const y = 10 + (levelNum - 1) * verticalSpacing;
-    
-    // Horizontal distribution
+    const t = (levelNum - minLevel) / levelRange;
+    const baseX = laneStart.x + (laneEnd.x - laneStart.x) * t;
+    const baseY = laneStart.y + (laneEnd.y - laneStart.y) * t;
+
     if (count === 1) {
-      nodePositions[nodes[0].id] = { x: 50, y };
-    } else {
-      const spacing = 60 / (count + 1); // Distribute across 60% of width
-      nodes.forEach((node, idx) => {
-        const x = 20 + spacing * (idx + 1);
-        nodePositions[node.id] = { x, y };
-      });
+      nodePositions[nodes[0].id] = { x: baseX, y: baseY };
+      return;
     }
+
+    const spread = Math.min(18, 9 + count * 1.6);
+    nodes.forEach((node, idx) => {
+      const centeredIndex = idx - (count - 1) / 2;
+      const offset = (centeredIndex / Math.max(1, count - 1)) * spread;
+      nodePositions[node.id] = {
+        x: baseX + siblingPerpX * offset,
+        y: baseY + siblingPerpY * offset
+      };
+    });
   });
   const dynamicNodePositions = {};
   const bounds = graphContainerRef.current?.getBoundingClientRect();
@@ -915,7 +1067,13 @@ export default function ConstellationView({
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 1.2, delay: 0.3 }}
       >
-        <div ref={graphContainerRef} onMouseMove={handleGraphMouseMove} onMouseLeave={handleGraphMouseLeave} className="relative w-full h-full">
+        <div
+          ref={graphContainerRef}
+          onMouseMove={handleGraphMouseMove}
+          onMouseLeave={handleGraphMouseLeave}
+          onClick={() => setSelectedNode(null)}
+          className="relative w-full h-full"
+        >
           {/* Connection lines */}
           <ConstellationLinks 
             links={graphData.links} 
@@ -935,6 +1093,7 @@ export default function ConstellationView({
               isSelected={selectedNode?.id === node.id}
               isUnlocking={unlockedNodes.includes(node.id)}
               nodeColor={nodeColor}
+              vertexCount={nodeVertexCounts[node.id] || 4}
             />
           ))}
         </div>
@@ -989,16 +1148,17 @@ export default function ConstellationView({
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className="absolute z-50 bg-black/80 border border-white/30 rounded-xl p-6 backdrop-blur-md"
             style={{
-              top: 'auto',
+              top: '32px',
               left: 'auto',
               right: '96px',
-              bottom: '32px',
+              bottom: 'auto',
               maxWidth: 'min(24rem, calc(100vw - 32px))',
               maxHeight: 'calc(100vh - 32px)',
               overflowY: 'auto',
               fontFamily: 'monospace',
               boxShadow: '0 0 40px rgba(255, 255, 255, 0.2)'
             }}
+            onClick={(event) => event.stopPropagation()}
           >
             <motion.h3 
               className="text-xl text-white mb-2 font-bold"
@@ -1015,6 +1175,22 @@ export default function ConstellationView({
               transition={{ delay: 0.2 }}
             >
               {selectedNode.description}
+            </motion.p>
+            <motion.p
+              className="text-xs text-gray-300 mb-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.24 }}
+            >
+              Requires: {selectedNodeConditions.requires.length ? selectedNodeConditions.requires.join(', ') : 'None'}
+            </motion.p>
+            <motion.p
+              className="text-xs text-gray-300 mb-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.28 }}
+            >
+              Unlocks: {selectedNodeConditions.unlocks.length ? selectedNodeConditions.unlocks.join(', ') : 'None'}
             </motion.p>
             <div className="flex items-center gap-2">
               <motion.span 

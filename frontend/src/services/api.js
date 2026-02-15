@@ -1,5 +1,5 @@
 // API Service for Backend Integration
-const API_BASE_URL = 'http://localhost:5001';
+const API_BASE_URL = 'http://localhost:5000';
 const API_FALLBACK_BASE_URL = 'http://localhost:5000';
 
 // Helper function to handle API errors
@@ -228,6 +228,16 @@ export const updatePastConstellationTags = async (id, tags = []) => {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ tags })
+  });
+};
+
+export const updatePastConstellationTitle = async (id, title) => {
+  return requestConstellationApi(`/api/constellations/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ title })
   });
 };
 
