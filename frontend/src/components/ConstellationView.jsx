@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { knowledgeGraphData } from '../data/knowledgeGraph';
 import { fetchKnowledgeGraph, completeNode, verifyExplanation, generateCustomTree } from '../services/api';
@@ -24,13 +24,32 @@ const getNodeBestScore = (node) => {
 const getNodeStyleByStatus = (status) => {
   switch (status) {
     case 'mastered':
-      return { opacity: 1, size: 50, pulseSize: 2, shadow: '0 0 30px rgba(255,255,255,1)', rotate: true };
+      return { opacity: 1, size: 68, pulseSize: 2.2, shadow: '0 0 34px rgba(255,255,255,1)', rotate: true };
     case 'active':
-      return { opacity: 0.8, size: 45, pulseSize: 1.8, shadow: '0 0 20px rgba(255,255,255,0.8)', rotate: true };
+      return { opacity: 0.86, size: 60, pulseSize: 2, shadow: '0 0 26px rgba(255,255,255,0.82)', rotate: true };
     case 'locked':
     default:
-      return { opacity: 0.3, size: 35, pulseSize: 0, shadow: '0 0 10px rgba(255,255,255,0.3)', rotate: false };
+      return { opacity: 0.42, size: 50, pulseSize: 1.2, shadow: '0 0 14px rgba(255,255,255,0.42)', rotate: true };
   }
+};
+
+const hashString = (value) => {
+  let hash = 0;
+  const str = String(value || '');
+  for (let i = 0; i < str.length; i += 1) {
+    hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+};
+
+const getNodeMotionProfile = (nodeId) => {
+  const hash = hashString(nodeId);
+  const dir = hash % 2 === 0 ? 1 : -1;
+  const swing = 8 + (hash % 13); // 8..20 degrees
+  const rotationDuration = 7 + (hash % 6); // 7..12 sec
+  const shimmerDuration = 2.6 + ((hash >>> 3) % 22) / 10; // 2.6..4.7 sec
+  const shimmerDelay = ((hash >>> 5) % 14) / 10; // 0..1.3 sec
+  return { dir, swing, rotationDuration, shimmerDuration, shimmerDelay };
 };
 // Constellation-style node positioning
 function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = false }) {
@@ -38,6 +57,7 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
   const nodeStyle = getNodeStyleByStatus(normalizedStatus);
   const baseColor = '#ffffff';
   const size = nodeStyle.size;
+  const motionProfile = useMemo(() => getNodeMotionProfile(node.id), [node.id]);
 
   return (
     <motion.div
@@ -75,17 +95,15 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
         type: 'spring',
         stiffness: 100
       }}
-      whileHover={{ scale: 1.4, transition: { duration: 0.3 } }}
+      whileHover={{ scale: 1.32, transition: { duration: 0.3 } }}
       onClick={() => onClick(node)}
     >
-      {/* Center anchor wrapper so link coordinates land at node center */}
       <div
         style={{
           position: 'relative',
           transform: 'translate(-50%, -50%)'
         }}
       >
-        {/* Diamond/Hexagon shape instead of circle */}
         <motion.div
           style={{
             position: 'relative',
@@ -93,269 +111,140 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
             height: `${size}px`
           }}
           animate={nodeStyle.rotate ? {
-            rotate: [0, 360]
+            rotate: [
+              0,
+              motionProfile.dir * motionProfile.swing,
+              0,
+              motionProfile.dir * -motionProfile.swing,
+              0
+            ]
           } : {}}
           transition={{
-            rotate: { duration: 20, repeat: Infinity, ease: 'linear' }
+            rotate: {
+              duration: motionProfile.rotationDuration,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }
           }}
         >
-        {/* Star burst shape with 8 rays - shortened */}
-        <svg width={size} height={size} viewBox="0 0 100 100" style={{ filter: `drop-shadow(${nodeStyle.shadow})` }}>
-          {/* Main rays - 4 primary directions */}
-          <motion.line
-            x1="50" y1="50" x2="50" y2="20"
-            stroke={baseColor}
-            strokeWidth="3"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.6, nodeStyle.opacity, nodeStyle.opacity * 0.6]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="80" y2="50"
-            stroke={baseColor}
-            strokeWidth="3"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.6, nodeStyle.opacity, nodeStyle.opacity * 0.6]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.25
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="50" y2="80"
-            stroke={baseColor}
-            strokeWidth="3"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.6, nodeStyle.opacity, nodeStyle.opacity * 0.6]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.5
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="20" y2="50"
-            stroke={baseColor}
-            strokeWidth="3"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.6, nodeStyle.opacity, nodeStyle.opacity * 0.6]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.75
-            }}
-          />
-          
-          {/* Secondary rays - diagonal directions */}
-          <motion.line
-            x1="50" y1="50" x2="71" y2="29"
-            stroke={baseColor}
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity * 0.7}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.4, nodeStyle.opacity * 0.7, nodeStyle.opacity * 0.4]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.1
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="71" y2="71"
-            stroke={baseColor}
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity * 0.7}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.4, nodeStyle.opacity * 0.7, nodeStyle.opacity * 0.4]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.35
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="29" y2="71"
-            stroke={baseColor}
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity * 0.7}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.4, nodeStyle.opacity * 0.7, nodeStyle.opacity * 0.4]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.6
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="29" y2="29"
-            stroke={baseColor}
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity * 0.7}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.4, nodeStyle.opacity * 0.7, nodeStyle.opacity * 0.4]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.85
-            }}
-          />
-          
-          {/* Bright center core */}
-          <motion.circle
-            cx="50"
-            cy="50"
-            r="8"
-            fill={baseColor}
-            opacity={nodeStyle.opacity}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [nodeStyle.opacity * 0.9, nodeStyle.opacity, nodeStyle.opacity * 0.9]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-          />
-        </svg>
-        
-        {/* Unlock burst effect */}
-        {isUnlocking && (
-          <>
-            {/* Expanding rings */}
-            <motion.svg
-              width={size * 3}
-              height={size * 3}
-              viewBox="0 0 100 100"
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                pointerEvents: 'none'
+          <svg width={size} height={size} viewBox="0 0 100 100" style={{ filter: `drop-shadow(${nodeStyle.shadow})` }}>
+            <motion.path
+              d="M50 6 L58 42 L94 50 L58 58 L50 94 L42 58 L6 50 L42 42 Z"
+              fill={baseColor}
+              opacity={nodeStyle.opacity}
+              animate={{
+                scale: [1, 1.06, 0.98, 1],
+                opacity: [nodeStyle.opacity * 0.74, nodeStyle.opacity, nodeStyle.opacity * 0.78]
               }}
-            >
-              <defs>
-                <filter id="unlock-glow">
-                  <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
-              </defs>
-              <motion.circle
-                cx="50"
-                cy="50"
-                r="20"
-                fill="none"
-                stroke="#60a5fa"
-                strokeWidth="2"
-                opacity={0.8}
-                filter="url(#unlock-glow)"
-                animate={{
-                  r: [20, 35, 50],
-                  opacity: [0.8, 0.4, 0]
-                }}
-                transition={{
-                  duration: 1.2,
-                  ease: 'easeOut'
-                }}
-              />
-              <motion.circle
-                cx="50"
-                cy="50"
-                r="25"
-                fill="none"
-                stroke="#a78bfa"
-                strokeWidth="1.5"
-                opacity={0.6}
-                filter="url(#unlock-glow)"
-                animate={{
-                  r: [25, 40, 55],
-                  opacity: [0.6, 0.2, 0]
-                }}
-                transition={{
-                  duration: 1.3,
-                  ease: 'easeOut',
-                  delay: 0.1
-                }}
-              />
-            </motion.svg>
-            
-            {/* Sparkle particles */}
-            <svg
-              width={size * 4}
-              height={size * 4}
-              viewBox="0 0 100 100"
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                pointerEvents: 'none'
+              transition={{
+                duration: motionProfile.shimmerDuration,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: motionProfile.shimmerDelay
               }}
-            >
-              {[0, 45, 90, 135, 180, 225, 270, 315].map(angle => (
+            />
+            <motion.path
+              d="M50 24 L54 46 L76 50 L54 54 L50 76 L46 54 L24 50 L46 46 Z"
+              fill={baseColor}
+              opacity={nodeStyle.opacity * 0.86}
+              animate={{
+                opacity: [nodeStyle.opacity * 0.56, nodeStyle.opacity * 0.92, nodeStyle.opacity * 0.56]
+              }}
+              transition={{
+                duration: motionProfile.shimmerDuration * 0.9,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: motionProfile.shimmerDelay * 0.6
+              }}
+            />
+            <motion.circle
+              cx="50"
+              cy="50"
+              r="6"
+              fill={baseColor}
+              opacity={nodeStyle.opacity * 0.95}
+              animate={{
+                scale: [1, 1.22, 0.92, 1],
+                opacity: [nodeStyle.opacity * 0.72, nodeStyle.opacity, nodeStyle.opacity * 0.72]
+              }}
+              transition={{
+                duration: motionProfile.shimmerDuration,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: motionProfile.shimmerDelay
+              }}
+            />
+          </svg>
+
+          {isUnlocking && (
+            <>
+              <motion.svg
+                width={size * 3}
+                height={size * 3}
+                viewBox="0 0 100 100"
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  pointerEvents: 'none'
+                }}
+              >
+                <defs>
+                  <filter id="unlock-glow">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
                 <motion.circle
-                  key={angle}
                   cx="50"
                   cy="50"
-                  r="2"
-                  fill="#60a5fa"
+                  r="20"
+                  fill="none"
+                  stroke="#60a5fa"
+                  strokeWidth="2"
+                  opacity={0.8}
+                  filter="url(#unlock-glow)"
                   animate={{
-                    cx: 50 + Math.cos(angle * Math.PI / 180) * 30,
-                    cy: 50 + Math.sin(angle * Math.PI / 180) * 30,
-                    opacity: [1, 0]
+                    r: [20, 35, 50],
+                    opacity: [0.8, 0.4, 0]
                   }}
                   transition={{
                     duration: 1.2,
                     ease: 'easeOut'
                   }}
                 />
-              ))}
-            </svg>
-          </>
-        )}
+                <motion.circle
+                  cx="50"
+                  cy="50"
+                  r="25"
+                  fill="none"
+                  stroke="#a78bfa"
+                  strokeWidth="1.5"
+                  opacity={0.6}
+                  filter="url(#unlock-glow)"
+                  animate={{
+                    r: [25, 40, 55],
+                    opacity: [0.6, 0.2, 0]
+                  }}
+                  transition={{
+                    duration: 1.3,
+                    ease: 'easeOut',
+                    delay: 0.1
+                  }}
+                />
+              </motion.svg>
+            </>
+          )}
         </motion.div>
 
-        {/* Label with smooth fade */}
         <motion.div
           className="absolute whitespace-nowrap font-mono text-sm font-medium"
           style={{
-            left: `${size + 15}px`,
+            left: `${size + 18}px`,
             top: '50%',
             transform: 'translateY(-50%)',
             color: baseColor,
@@ -363,11 +252,11 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
             pointerEvents: 'none'
           }}
           initial={{ opacity: 0, x: -20 }}
-          animate={{ 
-            opacity: nodeStyle.opacity * 0.95, 
-            x: 0 
+          animate={{
+            opacity: nodeStyle.opacity * 0.95,
+            x: 0
           }}
-          transition={{ 
+          transition={{
             delay: node.level * 0.15 + 0.4,
             duration: 0.8,
             type: 'spring'
@@ -376,11 +265,10 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
           {node.label.replace('\n', ' ')}
         </motion.div>
 
-        {/* Statistics display */}
         <motion.div
           className="absolute whitespace-nowrap font-mono text-xs"
           style={{
-            left: `${size + 15}px`,
+            left: `${size + 18}px`,
             top: 'calc(50% + 20px)',
             color: normalizedStatus === 'mastered' ? '#60a5fa' : normalizedStatus === 'active' ? '#99ff00' : '#888888',
             opacity: nodeStyle.opacity * 0.8,
@@ -986,8 +874,11 @@ export default function ConstellationView({
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 30, scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="absolute bottom-8 right-8 z-50 bg-black/80 border border-white/30 rounded-xl p-6 max-w-sm backdrop-blur-md"
+            className="absolute z-50 bg-black/80 border border-white/30 rounded-xl p-6 backdrop-blur-md"
             style={{
+              right: '16px',
+              bottom: '16px',
+              maxWidth: 'min(24rem, calc(100vw - 32px))',
               fontFamily: 'monospace',
               boxShadow: '0 0 40px rgba(255, 255, 255, 0.2)'
             }}
