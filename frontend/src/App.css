@@ -394,6 +394,13 @@
   justify-content: center;
 }
 
+.splash-stars-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
 .splash-title {
   font-size: 2.8rem;
   font-weight: 300;
@@ -473,62 +480,144 @@
   }
 
   60% {
-    opacity: 1;
+    opacity: var(--star-opacity, 1);
   }
 
   100% {
     transform: scale(1);
-    opacity: 1;
+    opacity: var(--star-opacity, 1);
   }
 }
 
 /* Splash exit — "looking up" effect: text slides down, stars streak downward */
 .splash-exit .splash-content {
-  animation: splash-slide-down 1800ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: splash-text-fade var(--exit-text-fade-ms, 320ms) ease-out forwards;
   will-change: transform, opacity;
 }
 
-@keyframes splash-slide-down {
+@keyframes splash-text-fade {
   0% {
-    transform: translate(-50%, -50%);
-    opacity: 1;
-  }
-
-  5% {
-    transform: translate(-50%, -48%);
     opacity: 1;
   }
 
   100% {
-    transform: translate(-50%, calc(-50% + 120vh));
     opacity: 0;
   }
 }
 
 /* Existing splash stars become streaks during exit */
 .star-look-up {
-  animation: star-streak-down 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+  animation: star-streak-down var(--exit-pan-ms, 1335ms) linear forwards !important;
+  will-change: transform, opacity, filter;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.star-look-up::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2.2px;
+  height: var(--streak-len, 96px);
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.88));
+  border-radius: 50% 50% 0 0;
+  filter: blur(0.45px);
+  animation: star-look-up-tail var(--exit-pan-ms, 1335ms) linear forwards;
+}
+
+.splash-star-visible {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: var(--star-opacity, 0.72);
+  background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.68) 50%, transparent 74%);
+  box-shadow: 0 0 7px rgba(255, 255, 255, 0.66), 0 0 14px rgba(255, 255, 255, 0.26);
+}
+
+.splash-gemini-entry {
+  animation: splash-gemini-appear var(--entry-duration, 1s) cubic-bezier(0.22, 1, 0.36, 1) var(--entry-delay, 0s) forwards !important;
+}
+
+.splash-gemini-visible {
+  animation: none !important;
+  opacity: var(--bg-gem-opacity, 0.6) !important;
+}
+
+.splash-gemini-look-up {
+  animation: splash-gemini-pan-down 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
 }
 
 @keyframes star-streak-down {
   0% {
-    opacity: 1;
-    transform: scale(1);
-    height: var(--star-streak, 15px);
-    border-radius: 50%;
+    opacity: var(--star-opacity, 0.92);
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
   }
 
-  15% {
-    opacity: 1;
-    height: var(--star-streak, 15px);
-    border-radius: 50% 50% 80% 80%;
+  92% {
+    opacity: calc(var(--star-opacity, 0.92) * 0.78);
+    transform: translateY(184vh) scale(0.91);
+    filter: blur(0.75px);
   }
 
   100% {
     opacity: 0;
-    transform: translateY(130vh) scale(0.5);
-    height: var(--star-streak, 15px);
-    border-radius: 50% 50% 80% 80%;
+    transform: translateY(212vh) scale(0.9);
+    filter: blur(1.1px);
+  }
+}
+
+@keyframes star-look-up-tail {
+  0% {
+    height: var(--streak-len, 96px);
+    opacity: 0.84;
+  }
+
+  90% {
+    height: 34px;
+    opacity: 0.46;
+  }
+
+  100% {
+    height: 0px;
+    opacity: 0;
+  }
+}
+
+@keyframes splash-gemini-appear {
+  0% {
+    transform: rotate(var(--bg-gem-rotation, 0deg)) translateY(calc(var(--travel-down, 320px) * -1)) scale(0.72);
+    opacity: 0;
+    filter: blur(1px);
+    box-shadow: 0 -22px 12px rgba(255, 255, 255, 0.28);
+  }
+
+  12% {
+    opacity: calc(var(--bg-gem-opacity, 0.6) * 0.55);
+  }
+
+  100% {
+    transform: rotate(var(--bg-gem-rotation, 0deg)) translateY(0px) scale(1);
+    opacity: var(--bg-gem-opacity, 0.6);
+    filter: blur(0px);
+    box-shadow: none;
+  }
+}
+
+@keyframes splash-gemini-pan-down {
+  0% {
+    transform: rotate(var(--bg-gem-rotation, 0deg)) translateY(0) scale(1);
+    opacity: var(--bg-gem-opacity, 0.6);
+    box-shadow: 0 -18px 10px rgba(255, 255, 255, 0.24);
+  }
+
+  100% {
+    transform: rotate(var(--bg-gem-rotation, 0deg)) translateY(128vh) scale(0.86);
+    opacity: 0;
+    filter: blur(1.1px);
+    box-shadow: 0 -40px 18px rgba(255, 255, 255, 0.18);
   }
 }
 
@@ -668,7 +757,7 @@
 
   100% {
     transform: translateY(0px);
-    opacity: 0.7;
+    opacity: var(--star-opacity, 0.7);
   }
 }
 
@@ -691,17 +780,13 @@
 
 /* Overall splash fade-out at the end */
 .splash-exit {
-  animation: splash-screen-fade 2000ms ease-in-out forwards;
+  animation: splash-screen-fade var(--exit-pan-ms, 1335ms) linear var(--exit-text-fade-ms, 320ms) forwards;
   pointer-events: none;
   /* Allow stars beneath to be visible */
 }
 
 @keyframes splash-screen-fade {
   0% {
-    opacity: 1;
-  }
-
-  40% {
     opacity: 1;
   }
 
@@ -718,7 +803,7 @@
   pointer-events: none;
   overflow: hidden;
   background: radial-gradient(ellipse at center, #12101f 0%, #0a0815 100%);
-  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 1190ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .starry-background.pan-up-transition {
@@ -735,12 +820,16 @@
   transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.bg-twinkle-star.is-hidden {
+  opacity: 0 !important;
+}
+
 .starry-background.pan-up-transition .bg-twinkle-star {
-  animation: star-pan-up-streak 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+  animation: star-pan-up-streak 1190ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
 }
 
 .starry-background.pan-up-transition .bg-gemini-star {
-  animation: gemini-pan-up-streak 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+  animation: gemini-pan-up-streak 1190ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
 }
 
 @keyframes star-pan-up-streak {
@@ -829,6 +918,34 @@
   transform: rotate(var(--bg-gem-rotation, 0deg)) scale(0.82);
 }
 
+.bg-gemini-star.main-landing {
+  animation: bg-gemini-main-land var(--land-duration, 1.52s) cubic-bezier(0.22, 1, 0.36, 1) var(--land-delay, 0s) forwards !important;
+}
+
+@keyframes bg-gemini-main-land {
+  0% {
+    transform: rotate(var(--bg-gem-rotation, 0deg)) translateY(calc(var(--travel-down, 340px) * -1)) scale(0.74);
+    opacity: 0;
+    filter: blur(1px);
+    box-shadow: 0 -22px 14px rgba(255, 255, 255, 0.26);
+  }
+
+  12% {
+    opacity: calc(var(--bg-gem-opacity, 0.58) * 0.62);
+  }
+
+  70% {
+    transform: rotate(var(--bg-gem-rotation, 0deg)) translateY(-6px) scale(1);
+  }
+
+  100% {
+    transform: rotate(var(--bg-gem-rotation, 0deg)) translateY(0) scale(1);
+    opacity: var(--bg-gem-opacity, 0.58);
+    filter: blur(0px);
+    box-shadow: none;
+  }
+}
+
 @keyframes bg-gemini-pulse {
 
   0%,
@@ -844,14 +961,71 @@
   }
 }
 
-/* Stars landing into place with streak effect — 800ms, all at once */
+@keyframes bg-gemini-pulse-in {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--bg-gem-rotation, 0deg)) scale(0.88);
+  }
+
+  22% {
+    opacity: calc(var(--bg-gem-opacity, 0.55) * 0.24);
+    transform: rotate(var(--bg-gem-rotation, 0deg)) scale(0.94);
+  }
+
+  48% {
+    opacity: var(--bg-gem-opacity, 0.55);
+    transform: rotate(var(--bg-gem-rotation, 0deg)) scale(1.08);
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.62));
+  }
+
+  76% {
+    opacity: calc(var(--bg-gem-opacity, 0.55) * 0.6);
+    transform: rotate(var(--bg-gem-rotation, 0deg)) scale(1.02);
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotate(var(--bg-gem-rotation, 0deg)) scale(0.9);
+  }
+}
+
+@keyframes bg-gemini-pulse-out {
+  0% {
+    opacity: var(--bg-gem-opacity, 0.55);
+    transform: rotate(var(--bg-gem-rotation, 0deg)) scale(1.05);
+  }
+
+  24% {
+    opacity: calc(var(--bg-gem-opacity, 0.55) * 0.72);
+    transform: rotate(var(--bg-gem-rotation, 0deg)) scale(1.02);
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.52));
+  }
+
+  52% {
+    opacity: calc(var(--bg-gem-opacity, 0.55) * 0.46);
+    transform: rotate(var(--bg-gem-rotation, 0deg)) scale(0.98);
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.44));
+  }
+
+  72% {
+    opacity: calc(var(--bg-gem-opacity, 0.55) * 0.34);
+    transform: rotate(var(--bg-gem-rotation, 0deg)) scale(0.95);
+  }
+
+  100% {
+    opacity: var(--bg-gem-opacity, 0.55);
+    transform: rotate(var(--bg-gem-rotation, 0deg)) scale(1.05);
+  }
+}
+
+/* Stars landing into place with streak effect — 1220ms, all at once */
 .star-landing {
   position: absolute;
   background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.6) 50%, transparent 70%);
   border-radius: 50% 50% 80% 80%;
   pointer-events: none;
   opacity: 0;
-  animation: star-land 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: star-land 1220ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   box-shadow: 0 0 6px rgba(255, 255, 255, 0.8),
     0 0 10px rgba(255, 255, 255, 0.3);
 }
@@ -867,7 +1041,7 @@
   background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.65));
   border-radius: 50% 50% 0 0;
   box-shadow: 0 0 3px rgba(255, 255, 255, 0.4);
-  animation: star-land-trail 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: star-land-trail 1220ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   z-index: -1;
 }
 
@@ -888,7 +1062,7 @@
 
   100% {
     transform: translateY(0px);
-    opacity: 0.7;
+    opacity: var(--star-opacity, 0.7);
   }
 }
 
@@ -1031,19 +1205,90 @@
   }
 }
 
-/* Gentle infinite twinkle — stars always visible, just subtle shimmer */
-@keyframes star-twinkle-forever {
+/* Pulse-in mode: transparent -> opaque -> translucent */
+@keyframes star-pulse-in-forever {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
 
-  0%,
+  20% {
+    opacity: calc(var(--star-opacity, 0.75) * 0.25);
+    transform: scale(0.95);
+  }
+
+  46% {
+    opacity: var(--star-opacity, 0.75);
+    transform: scale(1.14);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.56);
+  }
+
+  74% {
+    opacity: calc(var(--star-opacity, 0.75) * 0.62);
+    transform: scale(1.06);
+  }
+
   100% {
-    opacity: 0.6;
-    transform: scale(1);
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+/* Pulse-out mode: opaque -> translucent and ends translucent */
+@keyframes star-pulse-out-forever {
+  0% {
+    opacity: var(--star-opacity, 0.75);
+    transform: scale(1.05);
+  }
+
+  22% {
+    opacity: calc(var(--star-opacity, 0.75) * 0.74);
+    transform: scale(1.03);
+    box-shadow: 0 0 7px rgba(255, 255, 255, 0.52);
   }
 
   50% {
-    opacity: 1;
-    transform: scale(1.15);
-    box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+    opacity: calc(var(--star-opacity, 0.75) * 0.52);
+    transform: scale(0.99);
+  }
+
+  72% {
+    opacity: calc(var(--star-opacity, 0.75) * 0.34);
+    transform: scale(0.95);
+  }
+
+  100% {
+    opacity: var(--star-opacity, 0.75);
+    transform: scale(1.05);
+  }
+}
+
+/* Legacy twinkle alias */
+@keyframes star-twinkle-forever {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  20% {
+    opacity: calc(var(--star-opacity, 0.75) * 0.25);
+    transform: scale(0.95);
+  }
+
+  46% {
+    opacity: var(--star-opacity, 0.75);
+    transform: scale(1.14);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.56);
+  }
+
+  74% {
+    opacity: calc(var(--star-opacity, 0.75) * 0.62);
+    transform: scale(1.06);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.92);
   }
 }
 
@@ -1187,7 +1432,12 @@
 }
 
 .main-enter .flex-1.p-4 {
-  animation: main-content-rise 1200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: main-content-fade 500ms ease-out forwards;
+}
+
+.main-enter .text-box {
+  animation: textbox-slide-down 1100ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
 }
 
 @keyframes main-content-rise {
@@ -1198,6 +1448,28 @@
 
   100% {
     transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes main-content-fade {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes textbox-slide-down {
+  0% {
+    transform: translateY(-72px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0px);
     opacity: 1;
   }
 }

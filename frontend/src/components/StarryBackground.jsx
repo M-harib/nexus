@@ -1,14 +1,17 @@
-import React, { useEffect, useState, useRef } from 'react';
-import FIXED_STARS from '../data/stars';
+import React, { useEffect, useRef, useState } from 'react';
 
 const METEOR_ANGLE_DEG = 22.6;
 const METEOR_ANGLE_RAD = (METEOR_ANGLE_DEG * Math.PI) / 180;
 const METEOR_INITIAL_DELAY = 3.0; // seconds
-const MAIN_GEMINI_COUNT = 10;
-const GEMINI_HIDE_MIN_MS = 260;
-const GEMINI_HIDE_VAR_MS = 360;
-const GEMINI_MIN_CYCLES = 2;
-const GEMINI_CYCLE_VAR = 3;
+const MAIN_STAR_COUNT = 76;
+const MAIN_GEMINI_COUNT = 11;
+const MAIN_PULSE_START_DELAY_MS = 1850;
+const HIDE_MIN_MS = 250;
+const HIDE_VAR_MS = 540;
+const CYCLES_PER_RESPAWN = 4;
+const RESPAWN_FADE_IN_DELAY_MS = 45;
+const LAST_CYCLE_HIDE_PHASE_IN = 0.92;
+const LAST_CYCLE_HIDE_PHASE_OUT = 0.72;
 
 function createMeteor(id) {
   // Get screen dimensions
@@ -67,17 +70,45 @@ function randomBetween(min, max) {
   return min + Math.random() * (max - min);
 }
 
-function createMainGeminiStar(id) {
+function createMainStar(id) {
+  const landingDuration = randomBetween(1247, 1855);
+  const landingDelay = randomBetween(0, 280);
   return {
     id,
-    x: randomBetween(-8, 108),
-    y: randomBetween(-8, 108),
-    size: randomBetween(9, 17), // roughly half telescope Gemini stars
+    x: randomBetween(2, 98),
+    y: randomBetween(2, 98),
+    size: randomBetween(0.9, 2.8),
+    opacity: randomBetween(0.35, 0.92),
+    pulseDuration: randomBetween(2.4, 4.2),
+    pulseDelay: randomBetween(0, 0.45),
+    landingDelay,
+    landingDuration,
+    travelDown: randomBetween(240, 640),
+    streakLen: randomBetween(24, 82),
+    phase: 'landing',
+    pulseMode: 'out',
+    hidden: false,
+  };
+}
+
+function createMainGeminiStar(id) {
+  const landingDuration = randomBetween(1308, 1916);
+  const landingDelay = randomBetween(0, 300);
+  return {
+    id,
+    x: randomBetween(3, 97),
+    y: randomBetween(3, 97),
+    size: randomBetween(9.5, 17.5),
     rotation: randomBetween(-22, 22),
-    pulseDuration: randomBetween(2.8, 4.8),
-    delay: randomBetween(0, 2.8),
-    opacity: randomBetween(0.4, 0.8),
-    visible: true,
+    pulseDuration: randomBetween(3.0, 5.2),
+    pulseDelay: randomBetween(0, 0.5),
+    opacity: randomBetween(0.35, 0.82),
+    landingDelay,
+    landingDuration,
+    travelDown: randomBetween(260, 660),
+    phase: 'landing',
+    pulseMode: 'out',
+    hidden: false,
   };
 }
 
@@ -85,23 +116,26 @@ function StarryBackground({
   hideMeteors = false,
   enableGeminiStars = false,
   panUpTransition = false,
+  showStars = true,
+  mainEntrySequence = 0,
 }) {
-  const [visibleStars, setVisibleStars] = useState(FIXED_STARS);
+  const [mainStars, setMainStars] = useState([]);
   const [geminiStars, setGeminiStars] = useState([]);
-
-  // Filter visible stars: only render stars within screen bounds with padding
-  useEffect(() => {
-    const padding = 10;
-    setVisibleStars(FIXED_STARS.filter(star =>
-      star.x >= -padding && star.x <= 100 + padding &&
-      star.y >= -padding && star.y <= 100 + padding
-    ));
-  }, []);
 
   const [meteors, setMeteors] = useState([]);
   const meteorIdRef = useRef(0);
-  const timerRefs = useRef({});
+  const meteorTimersRef = useRef({});
+  const starTimersRef = useRef({});
   const geminiTimersRef = useRef({});
+  const dotPulseActiveRef = useRef(false);
+  const geminiPulseActiveRef = useRef(false);
+  const dotPulseStartTimerRef = useRef(null);
+  const geminiPulseStartTimerRef = useRef(null);
+
+  const clearStarTimers = (ref) => {
+    Object.values(ref.current).forEach(clearTimeout);
+    ref.current = {};
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -110,7 +144,7 @@ function StarryBackground({
         const newMeteor = createMeteor(meteorIdRef.current++);
         m.push(newMeteor);
         const totalDuration = (newMeteor.delay + newMeteor.duration) * 1000;
-        timerRefs.current[newMeteor.id] = setTimeout(() => {
+        meteorTimersRef.current[newMeteor.id] = setTimeout(() => {
           regenerateMeteor(newMeteor.id);
         }, totalDuration);
       }
@@ -118,7 +152,7 @@ function StarryBackground({
     }, METEOR_INITIAL_DELAY * 1000);
     return () => {
       clearTimeout(timer);
-      Object.values(timerRefs.current).forEach(clearTimeout);
+      Object.values(meteorTimersRef.current).forEach(clearTimeout);
     };
   }, []);
 
@@ -126,84 +160,187 @@ function StarryBackground({
     const newMeteor = createMeteor(meteorIdRef.current++);
     setMeteors(prev => prev.map(m => m.id === oldId ? newMeteor : m));
     const totalDuration = (newMeteor.delay + newMeteor.duration) * 1000;
-    timerRefs.current[newMeteor.id] = setTimeout(() => {
+    meteorTimersRef.current[newMeteor.id] = setTimeout(() => {
       regenerateMeteor(newMeteor.id);
     }, totalDuration);
   };
 
   useEffect(() => {
-    Object.values(geminiTimersRef.current).forEach(clearTimeout);
-    geminiTimersRef.current = {};
+    dotPulseActiveRef.current = false;
+    clearTimeout(dotPulseStartTimerRef.current);
+    clearStarTimers(starTimersRef);
 
-    if (!enableGeminiStars) {
-      setGeminiStars([]);
+    if (!showStars) {
+      setMainStars([]);
       return undefined;
     }
 
-    let isCancelled = false;
-    const initialStars = Array.from({ length: MAIN_GEMINI_COUNT }, (_, i) => createMainGeminiStar(i));
-    setGeminiStars(initialStars);
+    const initialStars = Array.from({ length: MAIN_STAR_COUNT }, (_, i) => createMainStar(i));
+    setMainStars(initialStars);
 
-    const scheduleRespawn = (starId, pulseDurationSec) => {
-      const cycles = GEMINI_MIN_CYCLES + Math.floor(Math.random() * GEMINI_CYCLE_VAR);
-      const visibleMs = Math.round(pulseDurationSec * cycles * 1000);
+    const clearTimersForStar = (starId) => {
+      ['hide', 'respawn', 'show'].forEach((stage) => {
+        const key = `${stage}-${starId}`;
+        if (starTimersRef.current[key]) {
+          clearTimeout(starTimersRef.current[key]);
+          delete starTimersRef.current[key];
+        }
+      });
+    };
 
-      geminiTimersRef.current[`hide-${starId}`] = setTimeout(() => {
-        if (isCancelled) return;
-        setGeminiStars(prev => prev.map(star => (
-          star.id === starId ? { ...star, visible: false } : star
+    const scheduleDotRespawn = (star) => {
+      if (!dotPulseActiveRef.current) return;
+
+      clearTimersForStar(star.id);
+      const hidePhase = star.pulseMode === 'out' ? LAST_CYCLE_HIDE_PHASE_OUT : LAST_CYCLE_HIDE_PHASE_IN;
+      const visibleMs = Math.round(star.pulseDuration * ((CYCLES_PER_RESPAWN - 1) + hidePhase) * 1000);
+      starTimersRef.current[`hide-${star.id}`] = setTimeout(() => {
+        if (!dotPulseActiveRef.current) return;
+        setMainStars(prev => prev.map(s => (
+          s.id === star.id ? { ...s, hidden: true } : s
         )));
-        const hiddenMs = GEMINI_HIDE_MIN_MS + Math.floor(Math.random() * GEMINI_HIDE_VAR_MS);
-        geminiTimersRef.current[`show-${starId}`] = setTimeout(() => {
-          if (isCancelled) return;
-          const next = createMainGeminiStar(starId);
-          setGeminiStars(prev => prev.map(star => (
-            star.id === starId ? next : star
-          )));
-          scheduleRespawn(starId, next.pulseDuration);
+
+        const hiddenMs = HIDE_MIN_MS + Math.floor(Math.random() * HIDE_VAR_MS);
+        starTimersRef.current[`respawn-${star.id}`] = setTimeout(() => {
+          if (!dotPulseActiveRef.current) return;
+          const next = createMainStar(star.id);
+          const respawned = { ...next, phase: 'pulse', pulseMode: 'in', hidden: true, pulseDelay: 0 };
+          setMainStars(prev => prev.map(s => (s.id === star.id ? respawned : s)));
+
+          starTimersRef.current[`show-${star.id}`] = setTimeout(() => {
+            if (!dotPulseActiveRef.current) return;
+            setMainStars(prev => prev.map(s => (
+              s.id === star.id ? { ...s, hidden: false } : s
+            )));
+            scheduleDotRespawn({ ...respawned, hidden: false });
+          }, RESPAWN_FADE_IN_DELAY_MS);
         }, hiddenMs);
       }, visibleMs);
     };
 
-    initialStars.forEach(star => scheduleRespawn(star.id, star.pulseDuration));
+    dotPulseStartTimerRef.current = setTimeout(() => {
+      dotPulseActiveRef.current = true;
+      setMainStars(prev => prev.map(star => ({ ...star, phase: 'pulse', hidden: false })));
+      initialStars.forEach((star) => scheduleDotRespawn({ ...star, phase: 'pulse', hidden: false }));
+    }, MAIN_PULSE_START_DELAY_MS);
 
     return () => {
-      isCancelled = true;
-      Object.values(geminiTimersRef.current).forEach(clearTimeout);
-      geminiTimersRef.current = {};
+      dotPulseActiveRef.current = false;
+      clearTimeout(dotPulseStartTimerRef.current);
+      clearStarTimers(starTimersRef);
     };
-  }, [enableGeminiStars]);
+  }, [showStars, mainEntrySequence]);
+
+  useEffect(() => {
+    geminiPulseActiveRef.current = false;
+    clearTimeout(geminiPulseStartTimerRef.current);
+    clearStarTimers(geminiTimersRef);
+
+    if (!showStars || !enableGeminiStars) {
+      setGeminiStars([]);
+      return undefined;
+    }
+
+    const initialStars = Array.from({ length: MAIN_GEMINI_COUNT }, (_, i) => createMainGeminiStar(i));
+    setGeminiStars(initialStars);
+
+    const clearTimersForStar = (starId) => {
+      ['hide', 'respawn', 'show'].forEach((stage) => {
+        const key = `${stage}-${starId}`;
+        if (geminiTimersRef.current[key]) {
+          clearTimeout(geminiTimersRef.current[key]);
+          delete geminiTimersRef.current[key];
+        }
+      });
+    };
+
+    const scheduleGeminiRespawn = (star) => {
+      if (!geminiPulseActiveRef.current) return;
+
+      clearTimersForStar(star.id);
+      const hidePhase = star.pulseMode === 'out' ? LAST_CYCLE_HIDE_PHASE_OUT : LAST_CYCLE_HIDE_PHASE_IN;
+      const visibleMs = Math.round(star.pulseDuration * ((CYCLES_PER_RESPAWN - 1) + hidePhase) * 1000);
+      geminiTimersRef.current[`hide-${star.id}`] = setTimeout(() => {
+        if (!geminiPulseActiveRef.current) return;
+        setGeminiStars(prev => prev.map(s => (
+          s.id === star.id ? { ...s, hidden: true } : s
+        )));
+
+        const hiddenMs = HIDE_MIN_MS + Math.floor(Math.random() * HIDE_VAR_MS);
+        geminiTimersRef.current[`respawn-${star.id}`] = setTimeout(() => {
+          if (!geminiPulseActiveRef.current) return;
+          const next = createMainGeminiStar(star.id);
+          const respawned = { ...next, phase: 'pulse', pulseMode: 'in', hidden: true, pulseDelay: 0 };
+          setGeminiStars(prev => prev.map(s => (s.id === star.id ? respawned : s)));
+
+          geminiTimersRef.current[`show-${star.id}`] = setTimeout(() => {
+            if (!geminiPulseActiveRef.current) return;
+            setGeminiStars(prev => prev.map(s => (
+              s.id === star.id ? { ...s, hidden: false } : s
+            )));
+            scheduleGeminiRespawn({ ...respawned, hidden: false });
+          }, RESPAWN_FADE_IN_DELAY_MS);
+        }, hiddenMs);
+      }, visibleMs);
+    };
+
+    geminiPulseStartTimerRef.current = setTimeout(() => {
+      geminiPulseActiveRef.current = true;
+      setGeminiStars(prev => prev.map(star => ({ ...star, phase: 'pulse', hidden: false })));
+      initialStars.forEach((star) => scheduleGeminiRespawn({ ...star, phase: 'pulse', hidden: false }));
+    }, MAIN_PULSE_START_DELAY_MS);
+
+    return () => {
+      geminiPulseActiveRef.current = false;
+      clearTimeout(geminiPulseStartTimerRef.current);
+      clearStarTimers(geminiTimersRef);
+    };
+  }, [showStars, enableGeminiStars, mainEntrySequence]);
 
   return (
     <div className={`starry-background ${panUpTransition ? 'pan-up-transition' : ''}`}>
-      {/* Stars always visible in twinkle mode */}
-      {visibleStars.map((star, i) => (
+      {showStars && mainStars.map((star) => (
         <div
           key={star.id}
-          className="bg-twinkle-star"
+          className={`${star.phase === 'landing' ? 'star-landing' : 'bg-twinkle-star'} ${star.hidden ? 'is-hidden' : ''}`}
           style={{
             left: `${star.x}%`,
             top: `${star.y}%`,
             width: `${star.size}px`,
             height: `${star.size}px`,
-            animation: `star-twinkle-forever ${3 + (i % 5)}s ease-in-out infinite`,
-            animationDelay: `${(i * 0.15) % 4}s`,
+            animationName: star.phase === 'pulse'
+              ? (star.pulseMode === 'out' ? 'star-pulse-out-forever' : 'star-pulse-in-forever')
+              : undefined,
+            animationTimingFunction: star.phase === 'pulse' ? 'cubic-bezier(0.32, 0, 0.2, 1)' : undefined,
+            animationDuration: star.phase === 'landing' ? `${star.landingDuration}ms` : `${star.pulseDuration}s`,
+            animationDelay: star.phase === 'landing' ? `${star.landingDelay}ms` : `${star.pulseDelay}s`,
+            '--travel-down': `${star.travelDown}px`,
+            '--streak-len': `${star.streakLen}px`,
+            '--star-opacity': star.opacity,
+            opacity: star.hidden ? 0 : star.opacity,
           }}
         />
       ))}
-      {enableGeminiStars && geminiStars.map(star => (
+      {showStars && enableGeminiStars && geminiStars.map((star) => (
         <div
           key={`main-gemini-${star.id}`}
-          className={`bg-gemini-star ${star.visible ? 'is-visible' : 'is-hidden'}`}
+          className={`bg-gemini-star ${star.hidden ? 'is-hidden' : 'is-visible'} ${star.phase === 'landing' ? 'main-landing' : ''}`}
           style={{
             left: `${star.x}%`,
             top: `${star.y}%`,
             width: `${star.size}px`,
             height: `${star.size}px`,
-            animationDuration: `${star.pulseDuration}s`,
-            animationDelay: `${star.delay}s`,
+            animationName: star.phase === 'pulse'
+              ? (star.pulseMode === 'out' ? 'bg-gemini-pulse-out' : 'bg-gemini-pulse-in')
+              : undefined,
+            animationTimingFunction: star.phase === 'pulse' ? 'cubic-bezier(0.32, 0, 0.2, 1)' : undefined,
+            animationDuration: star.phase === 'landing' ? undefined : `${star.pulseDuration}s`,
+            animationDelay: star.phase === 'landing' ? undefined : `${star.pulseDelay}s`,
             '--bg-gem-opacity': star.opacity,
             '--bg-gem-rotation': `${star.rotation}deg`,
+            '--travel-down': `${star.travelDown}px`,
+            '--land-delay': `${star.landingDelay}ms`,
+            '--land-duration': `${star.landingDuration}ms`,
           }}
         />
       ))}

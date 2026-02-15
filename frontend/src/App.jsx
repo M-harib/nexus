@@ -52,6 +52,8 @@ function App() {
   const [isHovered, setIsHovered] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [mainVisible, setMainVisible] = useState(false);
+  const [mainEntering, setMainEntering] = useState(false);
+  const [mainEntrySequence, setMainEntrySequence] = useState(0);
   const [telescopeMode, setTelescopeMode] = useState(false);
   const [constellationMode, setConstellationMode] = useState(false);
   const [constellationReady, setConstellationReady] = useState(false);
@@ -61,13 +63,18 @@ function App() {
   const [constellationTopic, setConstellationTopic] = useState('');
   const [activePage, setActivePage] = useState('create');
 
-  const [splashDone, setSplashDone] = useState(false);
-
   const handleSplashComplete = () => {
-    setSplashDone(true);
     setShowSplash(false);
     setMainVisible(true);
+    setMainEntering(true);
+    setMainEntrySequence(prev => prev + 1);
   };
+
+  useEffect(() => {
+    if (!mainEntering) return undefined;
+    const timer = setTimeout(() => setMainEntering(false), 1600);
+    return () => clearTimeout(timer);
+  }, [mainEntering]);
 
   const handleTextSubmit = (query) => {
     if (fadingOut || telescopeMode || activePage !== 'create') return;
@@ -153,6 +160,8 @@ function App() {
         hideMeteors={showSplash}
         enableGeminiStars={!showSplash && !showConstellationView && !telescopeMode}
         panUpTransition={fadingOut || telescopeMode || showConstellationView}
+        showStars={!showSplash}
+        mainEntrySequence={mainEntrySequence}
       />
 
       {/* Splash screen overlays on top */}
@@ -204,7 +213,7 @@ function App() {
 
       {/* Main UI (create/pages) */}
       {showMainUI && !showSplash && (
-        <div className={`app-container flex h-screen w-screen text-gray-100 overflow-hidden relative ${mainVisible ? 'main-enter' : ''}`}>
+        <div className={`app-container flex h-screen w-screen text-gray-100 overflow-hidden relative ${mainVisible && mainEntering ? 'main-enter' : ''}`}>
           {/* Telescope overlay */}
           {telescopeMode && <TelescopeView query={searchQuery} onComplete={handleTelescopeComplete} />}
 
