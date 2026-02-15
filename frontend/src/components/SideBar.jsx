@@ -15,9 +15,14 @@ const Sidebar = ({ isHovered, setIsHovered, onMenuClick, activePage = 'create' }
       style={{ background: '#0a0818' }}
     >
       <div className="flex items-center px-2 py-2 mx-2">
-        <div className="w-8 h-8 flex-shrink-0 rounded-md bg-gray-800 flex items-center justify-center text-gray-300 font-bold text-lg">
+        <button
+          type="button"
+          onClick={() => onMenuClick?.('create')}
+          className="w-8 h-8 flex-shrink-0 rounded-md bg-gray-800 flex items-center justify-center text-gray-300 font-bold text-lg cursor-pointer hover:bg-gray-700 transition-colors"
+          title="Go to Stargaze"
+        >
           N
-        </div>
+        </button>
       </div>
 
       <div className="mx-4 mb-6 h-px bg-gray-800" />

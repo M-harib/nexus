@@ -97,7 +97,9 @@
       "id": "const_1771138530936_2mbi77",
       "title": "Java OOP",
       "query": "java object oriented programming",
-      "tags": [],
+      "tags": [
+        "math"
+      ],
       "graph": {
         "nodes": [
           {
@@ -227,13 +229,15 @@
         ]
       },
       "createdAt": "2026-02-15T06:55:30.936Z",
-      "updatedAt": "2026-02-15T09:20:52.315Z"
+      "updatedAt": "2026-02-15T10:14:55.747Z"
     },
     {
       "id": "const_1771148441037_afurg1",
       "title": "calculus",
       "query": "calculus",
-      "tags": [],
+      "tags": [
+        "math"
+      ],
       "graph": {
         "nodes": [
           {
@@ -395,7 +399,7 @@
         ]
       },
       "createdAt": "2026-02-15T09:40:41.037Z",
-      "updatedAt": "2026-02-15T09:40:41.037Z"
+      "updatedAt": "2026-02-15T10:14:53.438Z"
     }
   ]
 }

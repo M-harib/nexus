@@ -721,14 +721,17 @@ export default function ConstellationView({
     loadGraphData();
   }, [userPrompt, query, initialGraphData, onTopicResolved]);
 
-  // Handle node click - open star trial for active nodes
+  // Handle node click - show node details only
   const handleNodeClick = (node) => {
     setSelectedNode(node);
-    const normalizedStatus = normalizeNodeStatus(node);
-    if (normalizedStatus === 'active' || normalizedStatus === 'mastered') {
-      setCurrentBossNode(node);
-      setShowBossFight(true);
-    }
+  };
+
+  const handleStartStarTrialFromPanel = () => {
+    if (!selectedNode) return;
+    const normalizedStatus = normalizeNodeStatus(selectedNode);
+    if (normalizedStatus !== 'active' && normalizedStatus !== 'mastered') return;
+    setCurrentBossNode(selectedNode);
+    setShowBossFight(true);
   };
 
   // Handle star trial completion
@@ -1156,7 +1159,8 @@ export default function ConstellationView({
               maxHeight: 'calc(100vh - 32px)',
               overflowY: 'auto',
               fontFamily: 'monospace',
-              boxShadow: '0 0 40px rgba(255, 255, 255, 0.2)'
+              boxShadow: '0 0 40px rgba(255, 255, 255, 0.2)',
+              paddingBottom: '64px'
             }}
             onClick={(event) => event.stopPropagation()}
           >
@@ -1210,6 +1214,31 @@ export default function ConstellationView({
                 {normalizeNodeStatus(selectedNode).toUpperCase()}
               </motion.span>
             </div>
+            {(normalizeNodeStatus(selectedNode) === 'active' || normalizeNodeStatus(selectedNode) === 'mastered') && (
+              <button
+                type="button"
+                onClick={handleStartStarTrialFromPanel}
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  bottom: '16px',
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(120, 200, 255, 0.75)',
+                  background: 'linear-gradient(135deg, rgba(42, 122, 255, 0.92), rgba(22, 84, 212, 0.92))',
+                  color: '#e8f5ff',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                  boxShadow: '0 0 14px rgba(80, 170, 255, 0.8), inset 0 0 12px rgba(170, 220, 255, 0.25)',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer'
+                }}
+              >
+                START STAR TRIAL
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
