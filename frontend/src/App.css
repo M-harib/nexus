@@ -2167,3 +2167,103 @@
     transform: translateX(-50%) translateY(0);
   }
 }
+
+/* ===== Past Constellation Open Transition ===== */
+.past-open-transition-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 280;
+}
+
+.past-open-transition-backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(6, 10, 22, 0.04), rgba(2, 4, 12, 0.48));
+  opacity: 0;
+  transition: opacity 380ms ease-out;
+}
+
+.past-open-zoom-shell {
+  position: absolute;
+  left: var(--past-origin-left);
+  top: var(--past-origin-top);
+  width: var(--past-origin-width);
+  height: var(--past-origin-height);
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(170, 220, 255, 0.5);
+  background:
+    radial-gradient(circle at 15% 25%, rgba(164, 215, 255, 0.26), transparent 45%),
+    radial-gradient(circle at 82% 75%, rgba(130, 160, 255, 0.22), transparent 48%),
+    rgba(6, 10, 26, 0.84);
+  box-shadow: 0 0 28px rgba(130, 200, 255, 0.25), inset 0 0 24px rgba(120, 170, 255, 0.08);
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    left 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    top 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 420ms ease-out,
+    opacity 520ms ease-out;
+  transform-origin: center;
+}
+
+.past-open-star-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.past-open-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #f7fbff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.84);
+  opacity: 0.2;
+}
+
+.phase-glisten .past-open-star,
+.phase-zoom .past-open-star {
+  animation: past-open-star-glisten 0.55s ease-out forwards;
+}
+
+.phase-zoom .past-open-transition-backdrop,
+.phase-dissolve .past-open-transition-backdrop {
+  opacity: 1;
+}
+
+.phase-zoom .past-open-zoom-shell,
+.phase-dissolve .past-open-zoom-shell {
+  left: 50%;
+  top: 50%;
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  transform: translate(-50%, -50%) scale(1.02);
+  box-shadow: 0 0 80px rgba(140, 205, 255, 0.32);
+}
+
+.phase-dissolve .past-open-zoom-shell {
+  opacity: 0;
+  transition-duration: 520ms;
+}
+
+@keyframes past-open-star-glisten {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.6);
+    filter: blur(0.4px);
+  }
+
+  64% {
+    opacity: 1;
+    transform: scale(2);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 0.68;
+    transform: scale(1);
+  }
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import Sidebar from './components/SideBar';
 import Header from './components/Header';
@@ -13,14 +13,13 @@ import ProfileView from './components/ProfileView';
 import { createPastConstellation } from './services/api';
 
 const MAIN_UI_FADE_MS = 900;
+const PAST_OPEN_GLINT_MS = 700;
+const PAST_OPEN_ZOOM_MS = 850;
+const PAST_OPEN_DISSOLVE_MS = 550;
 
 const PAGE_CONTENT = {
   past: {
     title: 'Past Constellations',
-    subtitle: 'Simple outline view',
-  },
-  settings: {
-    title: 'Settings',
     subtitle: 'Simple outline view',
   },
   profile: {
@@ -47,6 +46,26 @@ function parseGraphPayload(payload) {
   return null;
 }
 
+function buildSeededStars(seedKey, count = 18) {
+  const seedString = String(seedKey || 'constellation');
+  let seed = 0;
+  for (let i = 0; i < seedString.length; i += 1) {
+    seed = (seed * 31 + seedString.charCodeAt(i)) >>> 0;
+  }
+  const next = () => {
+    seed = (1664525 * seed + 1013904223) >>> 0;
+    return seed / 4294967295;
+  };
+
+  return Array.from({ length: count }).map((_, idx) => ({
+    id: `transition-star-${idx}`,
+    x: 7 + next() * 86,
+    y: 10 + next() * 80,
+    size: 1.8 + next() * 3.1,
+    delayMs: Math.round(next() * 640)
+  }));
+}
+
 function App() {
 
   const [isHovered, setIsHovered] = useState(false);
@@ -60,8 +79,17 @@ function App() {
   const [constellationData, setConstellationData] = useState(null);
   const [constellationTopic, setConstellationTopic] = useState('');
   const [activePage, setActivePage] = useState('create');
+  const [pastOpenTransition, setPastOpenTransition] = useState(null);
+  const pastOpenTimersRef = useRef([]);
 
   const [splashDone, setSplashDone] = useState(false);
+
+  const clearPastOpenTimers = () => {
+    pastOpenTimersRef.current.forEach((id) => clearTimeout(id));
+    pastOpenTimersRef.current = [];
+  };
+
+  useEffect(() => () => clearPastOpenTimers(), []);
 
   const handleSplashComplete = () => {
     setSplashDone(true);
@@ -122,6 +150,8 @@ function App() {
   };
 
   const handleMenuClick = (pageId) => {
+    clearPastOpenTimers();
+    setPastOpenTransition(null);
     setActivePage(pageId);
     setFadingOut(false);
     setTelescopeMode(false);
@@ -131,16 +161,49 @@ function App() {
     }
   };
 
-  const handleOpenPastConstellation = (item) => {
+  const handleOpenPastConstellation = (item, transitionMeta = {}) => {
     if (!item?.graph?.nodes || !item?.graph?.links) return;
-    setSearchQuery(item.query || '');
-    setConstellationTopic(item.title || item.query || 'Knowledge');
-    setConstellationData(item.graph);
-    setConstellationMode(true);
-    setConstellationReady(true);
-    setActivePage('create');
-    setFadingOut(false);
-    setTelescopeMode(false);
+    clearPastOpenTimers();
+
+    const shell = {
+      phase: 'glisten',
+      originRect: transitionMeta?.originRect || null,
+      stars: transitionMeta?.previewStars || buildSeededStars(item.id)
+    };
+    setPastOpenTransition(shell);
+
+    const toZoomMs = PAST_OPEN_GLINT_MS;
+    const toDissolveMs = PAST_OPEN_GLINT_MS + PAST_OPEN_ZOOM_MS;
+    const mountConstellationMs = toDissolveMs - 120;
+    const endTransitionMs = toDissolveMs + PAST_OPEN_DISSOLVE_MS;
+
+    pastOpenTimersRef.current.push(setTimeout(() => {
+      setPastOpenTransition((prev) => (prev ? { ...prev, phase: 'zoom' } : prev));
+    }, toZoomMs));
+
+    pastOpenTimersRef.current.push(setTimeout(() => {
+      setSearchQuery(item.query || '');
+      setConstellationTopic(item.title || item.query || 'Knowledge');
+      setConstellationData(item.graph);
+      setConstellationMode(true);
+      setConstellationReady(false);
+      setActivePage('create');
+      setFadingOut(false);
+      setTelescopeMode(false);
+    }, mountConstellationMs));
+
+    pastOpenTimersRef.current.push(setTimeout(() => {
+      setPastOpenTransition((prev) => (prev ? { ...prev, phase: 'dissolve' } : prev));
+    }, toDissolveMs));
+
+    pastOpenTimersRef.current.push(setTimeout(() => {
+      setConstellationReady(true);
+    }, toDissolveMs + 180));
+
+    pastOpenTimersRef.current.push(setTimeout(() => {
+      setPastOpenTransition(null);
+      clearPastOpenTimers();
+    }, endTransitionMs));
   };
 
   const showConstellationView = constellationMode && constellationData && activePage === 'create';
@@ -241,6 +304,37 @@ function App() {
                   />
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pastOpenTransition && (
+        <div
+          className={`past-open-transition-overlay phase-${pastOpenTransition.phase}`}
+          style={{
+            '--past-origin-left': `${pastOpenTransition.originRect?.left ?? window.innerWidth * 0.2}px`,
+            '--past-origin-top': `${pastOpenTransition.originRect?.top ?? window.innerHeight * 0.2}px`,
+            '--past-origin-width': `${pastOpenTransition.originRect?.width ?? window.innerWidth * 0.6}px`,
+            '--past-origin-height': `${pastOpenTransition.originRect?.height ?? window.innerHeight * 0.42}px`
+          }}
+        >
+          <div className="past-open-transition-backdrop" />
+          <div className="past-open-zoom-shell">
+            <div className="past-open-star-layer">
+              {pastOpenTransition.stars.map((star) => (
+                <span
+                  key={star.id}
+                  className="past-open-star"
+                  style={{
+                    left: `${star.x}%`,
+                    top: `${star.y}%`,
+                    width: `${star.size}px`,
+                    height: `${star.size}px`,
+                    animationDelay: `${star.delayMs}ms`
+                  }}
+                />
+              ))}
             </div>
           </div>
         </div>

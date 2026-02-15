@@ -110,15 +110,65 @@
 }
 
 .past-card {
+  position: relative;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.03);
   padding: 0.75rem;
   display: grid;
   gap: 0.6rem;
+  overflow: hidden;
+}
+
+.past-card.is-opening {
+  border-color: rgba(150, 216, 255, 0.7);
+  box-shadow: 0 0 32px rgba(130, 204, 255, 0.3);
+}
+
+.past-card-preview {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.38;
+  background:
+    radial-gradient(circle at 14% 20%, rgba(170, 220, 255, 0.2), transparent 42%),
+    radial-gradient(circle at 82% 70%, rgba(120, 150, 255, 0.2), transparent 48%);
+}
+
+.past-card-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #f8fbff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.72);
+  opacity: 0.3;
+}
+
+.past-card.is-opening .past-card-star {
+  animation: past-card-star-glisten 0.55s ease-out forwards;
+}
+
+@keyframes past-card-star-glisten {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.5);
+    filter: blur(0.4px);
+  }
+
+  65% {
+    opacity: 1;
+    transform: scale(1.8);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 0.64;
+    transform: scale(1);
+  }
 }
 
 .past-card-top {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -142,12 +192,16 @@
 }
 
 .past-tags-row {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
 }
 
 .past-tag-editor {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 0.5rem;
 }
