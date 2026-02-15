@@ -11,6 +11,18 @@ function normalizeTag(value) {
   return value.trim().toLowerCase().replace(/\s+/g, '-');
 }
 
+function isMasteredStatus(status) {
+  if (typeof status === 'number') return status > 0;
+  return String(status || '').trim().toLowerCase() === 'mastered';
+}
+
+function getCompletionPercent(graph) {
+  const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
+  if (!nodes.length) return 0;
+  const masteredCount = nodes.filter((node) => isMasteredStatus(node.status)).length;
+  return Math.round((masteredCount / nodes.length) * 100);
+}
+
 export default function PastConstellationsView({ onOpenConstellation }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +39,7 @@ export default function PastConstellationsView({ onOpenConstellation }) {
     try {
       setLoading(true);
       const result = await fetchPastConstellations();
-      setItems(result);
+      setItems(Array.isArray(result) ? result : []);
       setError(null);
     } catch (err) {
       console.error('Failed to load past constellations:', err);
@@ -42,14 +54,16 @@ export default function PastConstellationsView({ onOpenConstellation }) {
   }, []);
 
   const allTags = useMemo(() => {
+    const safeItems = Array.isArray(items) ? items : [];
     const pool = new Set();
-    items.forEach((item) => (item.tags || []).forEach((tag) => pool.add(tag)));
+    safeItems.forEach((item) => (item.tags || []).forEach((tag) => pool.add(tag)));
     return [...pool].sort((a, b) => a.localeCompare(b));
   }, [items]);
 
   const filtered = useMemo(() => {
+    const safeItems = Array.isArray(items) ? items : [];
     const q = query.trim().toLowerCase();
-    return items.filter((item) => {
+    return safeItems.filter((item) => {
       const title = String(item.title || '').toLowerCase();
       const sourceQuery = String(item.query || '').toLowerCase();
       const matchesQuery = !q || title.includes(q) || sourceQuery.includes(q);
@@ -201,15 +215,19 @@ export default function PastConstellationsView({ onOpenConstellation }) {
         <div className="past-empty">No constellations match your filters.</div>
       ) : (
         <div className="past-list">
-          {filtered.map((item) => (
-            <div
-              key={item.id}
-              className={`past-card ${openingId === item.id ? 'is-opening' : ''}`}
-              ref={(node) => {
-                if (node) cardRefs.current[item.id] = node;
-                else delete cardRefs.current[item.id];
-              }}
-            >
+          {filtered.map((item) => {
+            const completionPercent = getCompletionPercent(item.graph);
+            const isComplete = completionPercent === 100;
+
+            return (
+              <div
+                key={item.id}
+                className={`past-card ${openingId === item.id ? 'is-opening' : ''} ${isComplete ? 'is-complete' : ''}`}
+                ref={(node) => {
+                  if (node) cardRefs.current[item.id] = node;
+                  else delete cardRefs.current[item.id];
+                }}
+              >
               <div className="past-card-preview" aria-hidden="true">
                 {buildPreviewStars(item.id, 16).map((star) => (
                   <span
@@ -254,6 +272,9 @@ export default function PastConstellationsView({ onOpenConstellation }) {
                   <div className="past-card-time">
                     Updated: {new Date(item.updatedAt || item.createdAt).toLocaleString()}
                   </div>
+                  <div className={`past-card-progress ${isComplete ? 'complete' : ''}`}>
+                    Complete: {completionPercent}%
+                  </div>
                 </div>
                 <div className="past-card-actions">
                   <button type="button" onClick={() => handleOpen(item)} className="past-open-btn" disabled={!!openingId}>
@@ -296,8 +317,9 @@ export default function PastConstellationsView({ onOpenConstellation }) {
                   Add Tag
                 </button>
               </div>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
