@@ -374,7 +374,7 @@ app.get('/api/progress', (req, res) => {
   });
 });
 
-// Complete a node (after boss fight)
+// Complete a node (after Star Trial)
 app.post('/api/node/:nodeId/complete', (req, res) => {
   const { nodeId } = req.params;
   const { score } = req.body || {};
@@ -457,17 +457,60 @@ app.post('/api/node/:nodeId/complete', (req, res) => {
   });
 });
 
+// Generate critical-thinking questions for Star Trial
+app.post('/api/star-trial/questions', async (req, res) => {
+  const { nodeId, node: providedNode } = req.body || {};
+  let node = providedNode;
+
+  if (!node && nodeId) {
+    const nodeIndex = knowledgeGraph.nodes.findIndex((n) => n.id === nodeId);
+    node = knowledgeGraph.nodes[nodeIndex];
+  }
+
+  if (!node) {
+    return res.status(404).json({
+      success: false,
+      message: 'Node not found'
+    });
+  }
+
+  try {
+    const questionsResult = await generateStarTrialQuestionsWithAI(node);
+    return res.json({
+      success: true,
+      questions: questionsResult.questions,
+      usingFallback: questionsResult.usingFallback || false,
+      fallbackReason: questionsResult.reason || null
+    });
+  } catch (error) {
+    console.error('Failed to generate star trial questions:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to generate star trial questions',
+      error: error.message
+    });
+  }
+});
+
 // Verify explanation with Gemini AI
 app.post('/api/verify', async (req, res) => {
-  const { nodeId, explanation, audioData, node: providedNode } = req.body;
+  const {
+    nodeId,
+    explanation,
+    audioData,
+    node: providedNode,
+    trialAnswers = [],
+    trialQuestions = []
+  } = req.body;
   
   console.log('\n========================================');
-  console.log('🎯 BOSS FIGHT VERIFICATION REQUEST');
+  console.log('🌟 STAR TRIAL VERIFICATION REQUEST');
   console.log('========================================');
   console.log('Node ID:', nodeId);
   console.log('Explanation length:', explanation ? explanation.length : 0);
   console.log('Provided node:', providedNode ? 'YES' : 'NO');
   console.log('Audio data:', audioData ? 'YES' : 'NO');
+  console.log('Critical thinking answers:', Array.isArray(trialAnswers) ? trialAnswers.length : 0);
   
   // Use provided node data from frontend (for AI-generated trees) or look up in backend graph
   let node = providedNode;
@@ -516,12 +559,27 @@ app.post('/api/verify', async (req, res) => {
       message: 'Please provide a detailed explanation (at least 10 characters)'
     });
   }
+
+  if (!Array.isArray(trialAnswers) || trialAnswers.length < 2) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please answer both critical-thinking prompts.'
+    });
+  }
+
+  const hasMissingTrialAnswer = trialAnswers.some((entry) => !entry || !String(entry.answer || '').trim());
+  if (hasMissingTrialAnswer) {
+    return res.status(400).json({
+      success: false,
+      message: 'Critical-thinking answers cannot be empty.'
+    });
+  }
   
   console.log('✓ All checks passed, calling AI verification...');
 
   try {
     console.log('🤖 Calling Gemini AI for verification...');
-    const result = await verifyExplanationWithAI(node, explanation);
+    const result = await verifyExplanationWithAI(node, explanation, trialAnswers, trialQuestions);
     
     console.log('✅ AI Verification complete!');
     console.log('Score:', result.score);
@@ -564,6 +622,9 @@ app.post('/api/verify', async (req, res) => {
       feedback: result.feedback,
       message: result.message,
       suggestions: result.suggestions,
+      trialReview: result.trialReview || [],
+      explanationScore: result.explanationScore ?? null,
+      criticalThinkingScore: result.criticalThinkingScore ?? null,
       usingFallback: result.usingFallback || false,
       fallbackReason: result.reason || null
     });
@@ -851,207 +912,322 @@ function generateGenericTree(topic) {
   return tree;
 }
 
-// AI-powered function to verify user explanations
-async function verifyExplanationWithAI(node, explanation, retryCount = 0, maxRetries = 2) {
-  console.log('\n🤖 AI Verification Function Called');
-  console.log('Node:', node.label);
-  console.log('Explanation:', explanation.substring(0, 100) + (explanation.length > 100 ? '...' : ''));
-  if (retryCount > 0) console.log(`↻ Retry attempt ${retryCount}/${maxRetries}`);
-  
-  // If Gemini API not configured, use fallback scoring
-  if (!model) {
-    console.log('⚠️  Gemini API not configured - using fallback scoring');
-    return { ...fallbackVerification(node, explanation), usingFallback: true, reason: 'API not configured' };
-  }
-  
-  console.log('✓ Using Gemini AI for verification');
-  
-  const prompt = `You are an expert educator evaluating a student's understanding of: "${node.label}"
-
-Topic Description: ${node.description}
-
-Student's Explanation:
-"${explanation}"
-
-Your task is to evaluate if the student truly understands this concept. Analyze their explanation for:
-1. Accuracy - Are the facts and concepts correct?
-2. Completeness - Did they cover the key points?
-3. Clarity - Can they explain it in their own words?
-4. Depth - Do they show understanding beyond surface-level?
-
-Provide your evaluation as a JSON object with this exact structure:
-{
-  "score": 75,
-  "passed": true,
-  "feedback": "Good explanation covering key concepts. You demonstrated understanding of...",
-  "strengths": ["Point 1", "Point 2"],
-  "improvements": ["Area to improve 1", "Area to improve 2"]
+// AI-powered Star Trial helpers
+function safeString(value) {
+  return String(value || '').trim();
 }
 
-Scoring guide:
-- 90-100: Excellent, comprehensive understanding
-- 75-89: Good understanding with minor gaps
-- 60-74: Basic understanding but needs more depth
-- Below 60: Insufficient understanding
+function buildFallbackStarTrialQuestions(node) {
+  const topic = safeString(node?.label).replace(/\n/g, ' ') || 'this concept';
+  return [
+    {
+      id: 'q1',
+      prompt: `How would you apply ${topic} in a realistic scenario, and why is your approach effective?`,
+      whatToLookFor: ['applies the concept to a concrete scenario', 'explains reasoning'],
+      difficulty: 'medium'
+    },
+    {
+      id: 'q2',
+      prompt: `What is a common misconception about ${topic}, and how would you correct it?`,
+      whatToLookFor: ['identifies a misconception', 'provides a corrective explanation'],
+      difficulty: 'medium'
+    }
+  ];
+}
 
-Pass threshold: 70 or above
+async function generateStarTrialQuestionsWithAI(node) {
+  if (!model) {
+    return {
+      questions: buildFallbackStarTrialQuestions(node),
+      usingFallback: true,
+      reason: 'API not configured'
+    };
+  }
 
-Return ONLY valid JSON, no markdown code blocks.`;
+  const prompt = `You are generating exactly two critical-thinking prompts for a learning checkpoint.
+
+Concept: "${safeString(node.label).replace(/\n/g, ' ')}"
+Description: "${safeString(node.description)}"
+
+Output JSON only, with this schema:
+{
+  "questions": [
+    {
+      "id": "q1",
+      "prompt": "question text",
+      "whatToLookFor": ["criterion 1", "criterion 2"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "q2",
+      "prompt": "question text",
+      "whatToLookFor": ["criterion 1", "criterion 2"],
+      "difficulty": "medium"
+    }
+  ]
+}
+
+Rules:
+- Exactly 2 questions.
+- Questions must require reasoning/application (not pure recall).
+- Keep each question under 180 characters.
+- Keep "whatToLookFor" concise (2-4 items each).`;
 
   try {
-    console.log('\n📤 Sending verification prompt to Gemini AI...');
-    
     const result = await model.generateContent(prompt);
-    console.log('📥 Received response from Gemini AI');
-    
     const response = await result.response;
     let text = response.text();
-    
-    console.log('\n📄 Raw AI Response:');
-    console.log('─────────────────────────────────────');
-    console.log(text.substring(0, 300) + (text.length > 300 ? '...' : ''));
-    console.log('─────────────────────────────────────');
-    
-    // Clean and extract JSON
-    console.log('\n🧹 Extracting JSON from response...');
     text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    
+
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error('❌ Could not find valid JSON in AI response');
-      return fallbackVerification(node, explanation);
+      return { questions: buildFallbackStarTrialQuestions(node), usingFallback: true, reason: 'AI parse failure' };
     }
-    
-    console.log('🔍 Parsing JSON...');
-    const evaluation = JSON.parse(jsonMatch[0]);
-    console.log('✓ JSON parsed successfully');
-    
-    // Validate structure
-    if (typeof evaluation.score !== 'number' || typeof evaluation.passed !== 'boolean') {
-      console.error('❌ Invalid evaluation structure from AI');
-      return fallbackVerification(node, explanation);
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    const questions = Array.isArray(parsed.questions) ? parsed.questions : [];
+    if (questions.length !== 2) {
+      return { questions: buildFallbackStarTrialQuestions(node), usingFallback: true, reason: 'AI schema mismatch' };
     }
-    
-    // Ensure score is in valid range
-    evaluation.score = Math.max(0, Math.min(100, evaluation.score));
-    
-    // Build suggestions from improvements
-    const suggestions = evaluation.improvements || [];
-    
-    // Create final message
-    const message = evaluation.passed
-      ? `Excellent! You clearly understand ${node.label.replace(/\n/g, ' ')}. ${evaluation.feedback}`
-      : `Not quite there yet. ${evaluation.feedback}`;
-    
-    console.log('✅ Verification complete!');
-    console.log('Score:', evaluation.score);
-    console.log('Passed:', evaluation.passed);
-    
-    return {
-      score: evaluation.score,
-      passed: evaluation.passed,
-      feedback: evaluation.feedback,
-      message: message,
-      suggestions: suggestions
-    };
-    
+
+    const normalized = questions.map((q, idx) => ({
+      id: safeString(q.id) || `q${idx + 1}`,
+      prompt: safeString(q.prompt),
+      whatToLookFor: Array.isArray(q.whatToLookFor) ? q.whatToLookFor.map((item) => safeString(item)).filter(Boolean).slice(0, 4) : [],
+      difficulty: safeString(q.difficulty) || 'medium'
+    })).filter((q) => q.prompt);
+
+    if (normalized.length !== 2) {
+      return { questions: buildFallbackStarTrialQuestions(node), usingFallback: true, reason: 'AI normalization failure' };
+    }
+
+    return { questions: normalized };
   } catch (error) {
-    console.error('\n❌ AI verification failed!');
-    console.error('Error:', error.message);
-    
-    // Check if it's a quota/rate limit error (429)
+    return {
+      questions: buildFallbackStarTrialQuestions(node),
+      usingFallback: true,
+      reason: error.message || 'AI error'
+    };
+  }
+}
+
+async function verifyExplanationWithAI(node, explanation, trialAnswers = [], trialQuestions = [], retryCount = 0, maxRetries = 2) {
+  console.log('\n?? AI Verification Function Called');
+  console.log('Node:', node.label);
+  console.log('Explanation:', explanation.substring(0, 100) + (explanation.length > 100 ? '...' : ''));
+  if (retryCount > 0) console.log(`? Retry attempt ${retryCount}/${maxRetries}`);
+
+  const normalizedAnswers = Array.isArray(trialAnswers)
+    ? trialAnswers.map((item, idx) => ({
+      id: safeString(item?.id) || `q${idx + 1}`,
+      answer: safeString(item?.answer)
+    }))
+    : [];
+  const normalizedQuestions = Array.isArray(trialQuestions)
+    ? trialQuestions.map((q, idx) => ({
+      id: safeString(q?.id) || `q${idx + 1}`,
+      prompt: safeString(q?.prompt),
+      whatToLookFor: Array.isArray(q?.whatToLookFor) ? q.whatToLookFor.map((x) => safeString(x)).filter(Boolean) : []
+    }))
+    : [];
+
+  if (!model) {
+    return {
+      ...fallbackVerification(node, explanation, normalizedAnswers, normalizedQuestions),
+      usingFallback: true,
+      reason: 'API not configured'
+    };
+  }
+
+  const prompt = `You are an expert educator evaluating a student's "Star Trial" for "${safeString(node.label).replace(/\n/g, ' ')}".
+
+Topic Description: ${safeString(node.description)}
+
+Student Explanation:
+"${explanation}"
+
+Critical-thinking questions and student answers:
+${JSON.stringify(normalizedQuestions.map((q) => {
+  const answer = normalizedAnswers.find((a) => a.id === q.id)?.answer || '';
+  return {
+    id: q.id,
+    prompt: q.prompt,
+    whatToLookFor: q.whatToLookFor,
+    answer
+  };
+}), null, 2)}
+
+Important: grade semantically. Do NOT require exact wording.
+Judge whether answers demonstrate understanding, reasoning, and application.
+
+Return ONLY JSON with this schema:
+{
+  "score": 0-100,
+  "passed": true/false,
+  "explanationScore": 0-100,
+  "criticalThinkingScore": 0-100,
+  "feedback": "short summary",
+  "strengths": ["..."],
+  "improvements": ["..."],
+  "trialReview": [
+    { "id": "q1", "score": 0-100, "passed": true/false, "feedback": "..." },
+    { "id": "q2", "score": 0-100, "passed": true/false, "feedback": "..." }
+  ]
+}
+
+Scoring weights:
+- explanationScore: 60%
+- criticalThinkingScore: 40% (average across answers)
+Pass threshold: score >= 70.`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let text = response.text();
+    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return fallbackVerification(node, explanation, normalizedAnswers, normalizedQuestions);
+    }
+
+    const evaluation = JSON.parse(jsonMatch[0]);
+    if (typeof evaluation.score !== 'number' || typeof evaluation.passed !== 'boolean') {
+      return fallbackVerification(node, explanation, normalizedAnswers, normalizedQuestions);
+    }
+
+    const explanationScore = typeof evaluation.explanationScore === 'number'
+      ? Math.max(0, Math.min(100, Math.round(evaluation.explanationScore)))
+      : Math.max(0, Math.min(100, Math.round(evaluation.score)));
+    const criticalThinkingScore = typeof evaluation.criticalThinkingScore === 'number'
+      ? Math.max(0, Math.min(100, Math.round(evaluation.criticalThinkingScore)))
+      : explanationScore;
+    const score = Math.max(0, Math.min(100, Math.round(evaluation.score)));
+    const trialReview = Array.isArray(evaluation.trialReview) ? evaluation.trialReview : [];
+
+    return {
+      score,
+      passed: Boolean(evaluation.passed),
+      explanationScore,
+      criticalThinkingScore,
+      trialReview: trialReview.map((r, idx) => ({
+        id: safeString(r?.id) || `q${idx + 1}`,
+        score: typeof r?.score === 'number' ? Math.max(0, Math.min(100, Math.round(r.score))) : null,
+        passed: typeof r?.passed === 'boolean' ? r.passed : null,
+        feedback: safeString(r?.feedback)
+      })),
+      feedback: safeString(evaluation.feedback) || 'Evaluation completed.',
+      message: Boolean(evaluation.passed)
+        ? `Excellent work. You passed this Star Trial for ${safeString(node.label).replace(/\n/g, ' ')}.`
+        : 'Not quite there yet. Keep refining your explanation and reasoning.',
+      suggestions: Array.isArray(evaluation.improvements) ? evaluation.improvements.map((x) => safeString(x)).filter(Boolean) : []
+    };
+  } catch (error) {
     const isQuotaError = error.message && (
-      error.message.includes('429') || 
-      error.message.includes('quota') || 
+      error.message.includes('429') ||
+      error.message.includes('quota') ||
       error.message.includes('rate limit') ||
       error.message.includes('Too Many Requests')
     );
-    
-    // Extract retry delay from error message (format: "retry in X.XXXs")
-    let retryDelay = 2000; // default 2 seconds
+
+    let retryDelay = 2000;
     const retryMatch = error.message.match(/retry in ([0-9.]+)s/);
     if (retryMatch) {
-      retryDelay = Math.ceil(parseFloat(retryMatch[1]) * 1000) + 500; // Add 500ms buffer
+      retryDelay = Math.ceil(parseFloat(retryMatch[1]) * 1000) + 500;
     }
-    
-    // If quota error and we haven't exceeded max retries, wait and retry
+
     if (isQuotaError && retryCount < maxRetries) {
-      console.log(`⏳ Quota exceeded. Waiting ${retryDelay}ms before retry...`);
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
-      return verifyExplanationWithAI(node, explanation, retryCount + 1, maxRetries);
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      return verifyExplanationWithAI(
+        node,
+        explanation,
+        normalizedAnswers,
+        normalizedQuestions,
+        retryCount + 1,
+        maxRetries
+      );
     }
-    
-    console.log('\n📄 Falling back to basic verification...');
-    return { 
-      ...fallbackVerification(node, explanation), 
-      usingFallback: true, 
+
+    return {
+      ...fallbackVerification(node, explanation, normalizedAnswers, normalizedQuestions),
+      usingFallback: true,
       reason: isQuotaError ? 'Gemini quota exceeded' : 'API error',
       originalError: error.message
     };
   }
 }
 
-// Fallback verification when AI is unavailable
-function fallbackVerification(node, explanation) {
-  console.log('\n📋 Using fallback verification');
-  console.log('⚠️  Note: This is a basic rule-based scoring, not AI-powered');
-  
-  const wordCount = explanation.split(' ').length;
-  const hasNodeKeywords = node.label.toLowerCase().split(/\s+/).some(word => 
-    word.length > 3 && explanation.toLowerCase().includes(word)
-  );
-  
-  let score = 0;
+function fallbackVerification(node, explanation, trialAnswers = [], trialQuestions = []) {
+  const words = safeString(explanation).split(/\s+/).filter(Boolean);
+  const wordCount = words.length;
+  const nodeTokens = safeString(node.label).toLowerCase().split(/\s+/).filter((t) => t.length > 3);
+  const lowerExplanation = safeString(explanation).toLowerCase();
+  const hasNodeKeywords = nodeTokens.some((word) => lowerExplanation.includes(word));
+
+  let explanationScore = 0;
   const feedback = [];
-  
+
   if (wordCount >= 30) {
-    score += 40;
-    feedback.push('Good explanation length');
-  } else if (wordCount >= 15) {
-    score += 25;
-    feedback.push('Decent length, could be more detailed');
+    explanationScore += 72;
+    feedback.push('Good explanation depth');
+  } else if (wordCount >= 18) {
+    explanationScore += 58;
+    feedback.push('Decent explanation, add more depth');
   } else {
-    score += 10;
-    feedback.push('Explanation is quite brief');
+    explanationScore += 40;
+    feedback.push('Explanation is brief');
   }
-  
-  if (hasNodeKeywords) {
-    score += 30;
-    feedback.push('Used relevant terminology');
-  }
-  
-  // Bonus for reasonable length and structure
-  if (explanation.includes('.') || explanation.includes(',')) {
-    score += 15;
-    feedback.push('Well-structured explanation');
-  }
-  
-  // Add some variance
-  score += Math.floor(Math.random() * 15);
-  score = Math.min(100, score);
-  
+
+  if (hasNodeKeywords) explanationScore += 16;
+  if (safeString(explanation).includes('.') || safeString(explanation).includes(',')) explanationScore += 8;
+  explanationScore = Math.max(0, Math.min(100, explanationScore));
+
+  const trialReview = [];
+  const questionIds = (trialQuestions.length ? trialQuestions : buildFallbackStarTrialQuestions(node)).map((q, idx) => safeString(q.id) || `q${idx + 1}`);
+  let trialScoreTotal = 0;
+
+  questionIds.forEach((id) => {
+    const answer = safeString(trialAnswers.find((a) => a.id === id)?.answer);
+    const answerWords = answer.split(/\s+/).filter(Boolean).length;
+    let answerScore = 30;
+    if (answerWords >= 18) answerScore = 85;
+    else if (answerWords >= 10) answerScore = 68;
+    else if (answerWords >= 6) answerScore = 55;
+
+    const passed = answerScore >= 65;
+    trialScoreTotal += answerScore;
+    trialReview.push({
+      id,
+      score: answerScore,
+      passed,
+      feedback: passed ? 'Reasoning is present; add one concrete example for even stronger depth.' : 'Answer is too short; include reasoning and an applied example.'
+    });
+  });
+
+  const criticalThinkingScore = trialReview.length
+    ? Math.round(trialScoreTotal / trialReview.length)
+    : 60;
+
+  const score = Math.round((explanationScore * 0.6) + (criticalThinkingScore * 0.4));
   const passed = score >= 70;
-  
-  console.log('✓ Fallback verification complete');
-  console.log('Score:', score);
-  console.log('Passed:', passed);
-  
+
   return {
     score,
     passed,
-    feedback: feedback.join('. '),
+    explanationScore,
+    criticalThinkingScore,
+    trialReview,
+    feedback: feedback.join('. ') || 'Evaluation complete.',
     message: passed
-      ? `Good job! You demonstrated understanding of ${node.label.replace(/\n/g, ' ')}.`
-      : `Not quite there. Try explaining ${node.label.replace(/\n/g, ' ')} with more depth and detail.`,
+      ? `Good job! You demonstrated understanding of ${safeString(node.label).replace(/\n/g, ' ')}.`
+      : 'Not quite there. Add more depth and clearer reasoning in both explanation and critical-thinking responses.',
     suggestions: !passed ? [
-      'Focus on the core concepts',
-      'Use analogies or examples',
-      'Explain in your own words',
-      'Cover the key principles'
+      'Use one concrete real-world example in each response',
+      'Explain why your approach works, not just what it is',
+      'Address one common misconception explicitly'
     ] : []
   };
 }
-
 // Mount modular routes
 app.use('/api/voice', voiceRoutes);
 app.use('/api/trees', treeRoutes);
@@ -1110,3 +1286,4 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+
