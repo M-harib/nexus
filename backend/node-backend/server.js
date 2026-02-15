@@ -16,16 +16,46 @@ const PORT = process.env.PORT || 5001;
 // Initialize Gemini AI
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 console.log('🔑 Loading GEMINI_API_KEY:', GEMINI_API_KEY ? `"${GEMINI_API_KEY.substring(0, 4)}...${GEMINI_API_KEY.substring(GEMINI_API_KEY.length - 4)}"` : 'Not Found');
-const genAI = GEMINI_API_KEY && GEMINI_API_KEY !== 'your_gemini_api_key_here' 
-  ? new GoogleGenerativeAI(GEMINI_API_KEY) 
-  : null;
-const model = genAI ? genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }) : null;
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+let genAI = null;
+let apiKeyStatus = 'unknown';
+let model = null;
 
+// Async initialization with quota checking
+(async () => {
+  if (GEMINI_API_KEY && GEMINI_API_KEY !== 'your_gemini_api_key_here') {
+    try {
+      // Test the API key with a minimal call to check quota
+      const testGenAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+      const testModel = testGenAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      
+      // Make a minimal test call
+      await testModel.generateContent('test');
+      
+      // If we get here, API key is valid and has quota
+      genAI = testGenAI;
+      model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      apiKeyStatus = 'valid';
+      console.log('✅ API key validated successfully');
+    } catch (error) {
+      genAI = null;
+      model = null;
+      if (error.message.includes('quota') || error.message.includes('limit') || error.message.includes('exhausted')) {
+        apiKeyStatus = 'quota_exhausted';
+        console.log('⚠️  API key quota exhausted - AI features disabled');
+      } else if (error.message.includes('invalid') || error.message.includes('unauthorized')) {
+        apiKeyStatus = 'invalid_key';
+        console.log('⚠️  API key is invalid - AI features disabled');
+      } else {
+        apiKeyStatus = 'error';
+        console.log('⚠️  API key test failed - AI features disabled:', error.message);
+      }
+    }
+  } else {
+    apiKeyStatus = 'missing';
+    console.log('⚠️  API key not configured - AI features disabled');
+  }
+})();
 // In-memory database (for hackathon speed)
 let knowledgeGraph = {
   nodes: [
@@ -597,9 +627,11 @@ app.post('/api/generate-tree', async (req, res) => {
   try {
     console.log('🚀 Starting tree generation...');
     // Generate a learning tree based on the topic using Gemini AI
-    const generatedTree = await generateLearningTreeWithAI(topic.trim());
+    const generated = await generateLearningTreeWithAI(topic.trim());
+    const generatedTree = generated.graph;
     
     console.log('✅ Tree generation successful!');
+    console.log(`🧭 Generation source: ${generated.source}${generated.reason ? ` (${generated.reason})` : ''}`);
     console.log('Generated nodes:', generatedTree.nodes.length);
     console.log('Generated links:', generatedTree.links.length);
     console.log('Node IDs:', generatedTree.nodes.map(n => n.id).join(', '));
@@ -608,7 +640,13 @@ app.post('/api/generate-tree', async (req, res) => {
     res.json({
       success: true,
       topic: topic,
-      graph: generatedTree
+      graph: generatedTree,
+      generation: {
+        source: generated.source,
+        reason: generated.reason || null,
+        apiKeyStatus,
+        modelAvailable: Boolean(model)
+      }
     });
   } catch (error) {
     console.error('❌ Error generating tree:', error);
@@ -633,7 +671,11 @@ async function generateLearningTreeWithAI(topic) {
     console.log('⚠️  Gemini API not configured (model is null)');
     console.log('📄 Using FALLBACK generic template');
     console.log('💡 To enable AI: Set GEMINI_API_KEY in .env file');
-    return generateGenericTree(topic);
+    return {
+      graph: generateGenericTree(topic),
+      source: 'fallback',
+      reason: `model_unavailable:${apiKeyStatus || 'unknown'}`
+    };
   }
 
   console.log('✓ Gemini API configured - using AI generation');
@@ -732,7 +774,11 @@ Return ONLY valid JSON, no markdown code blocks.`;
       console.log(`  ${i+1}. [${node.status.padEnd(8)}] ${node.label.replace(/\n/g, ' ')} (level ${node.level})`);
     });
     
-    return tree;
+    return {
+      graph: tree,
+      source: 'gemini',
+      reason: null
+    };
   } catch (error) {
     console.error('\n❌ AI generation failed!');
     console.error('Error type:', error.constructor.name);
@@ -740,7 +786,11 @@ Return ONLY valid JSON, no markdown code blocks.`;
     if (error.stack) console.error('Stack trace:', error.stack);
     console.log('\n📄 Falling back to generic template...');
     // Fallback to a generic tree if AI fails
-    return generateGenericTree(topic);
+    return {
+      graph: generateGenericTree(topic),
+      source: 'fallback',
+      reason: `gemini_error:${error.message}`
+    };
   }
 }
 

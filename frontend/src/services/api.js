@@ -1,5 +1,5 @@
 // API Service for Backend Integration
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'http://localhost:5001';
 const API_FALLBACK_BASE_URL = 'http://localhost:5000';
 
 // Helper function to handle API errors
@@ -132,6 +132,14 @@ export const generateCustomTree = async (topic, difficulty = 'medium') => {
       }),
     });
     const data = await handleResponse(response);
+    const meta = data?.generation;
+    if (meta) {
+      console.log(
+        `[TreeGen] source=${meta.source} reason=${meta.reason || 'none'} apiKeyStatus=${meta.apiKeyStatus} modelAvailable=${meta.modelAvailable}`
+      );
+    } else {
+      console.warn('[TreeGen] No generation metadata returned by backend');
+    }
     return data;
   } catch (error) {
     console.error('Error generating custom tree:', error);
