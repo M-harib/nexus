@@ -2710,12 +2710,23 @@
 }
 
 .found-constellation-center {
-  transform: scale(1);
+  width: 340px;
+  height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.5);
   transform-origin: center;
+  transition: transform 400ms ease-out;
+}
+
+/* Paused state: constellation visible at small scale */
+.found-constellation.paused .found-constellation-center {
+  transform: scale(0.5);
 }
 
 .found-constellation.zoom-in .found-constellation-center {
-  animation: constellation-zoom-in 1800ms cubic-bezier(0.16, 0.88, 0.3, 1.0) forwards;
+  animation: constellation-zoom-in 2200ms cubic-bezier(0.16, 0.88, 0.3, 1.0) forwards;
 }
 
 @keyframes constellation-appear {
@@ -2730,31 +2741,25 @@
 
 @keyframes constellation-zoom-in {
   0% {
-    transform: scale(1);
+    transform: scale(0.5);
     opacity: 1;
   }
 
-  70% {
-    transform: scale(6);
-    opacity: 0.7;
-  }
-
   100% {
-    transform: scale(10);
-    opacity: 0;
+    transform: scale(4);
+    opacity: 1;
   }
 }
 
 .constellation-svg-found {
-  width: 55%;
-  height: 55%;
-  max-width: 520px;
-  max-height: 520px;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .constellation-line-found {
-  stroke: rgba(147, 197, 253, 0.6);
-  stroke-width: 0.3;
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 0.15;
   stroke-linecap: round;
   opacity: 0;
   animation: line-fade-in-found 650ms ease-out forwards;
@@ -2771,9 +2776,9 @@
 }
 
 .constellation-dot-found {
-  fill: rgba(147, 197, 253, 0.9);
-  opacity: 0.92;
-  filter: drop-shadow(0 0 4px rgba(147, 197, 253, 0.8));
+  fill: rgba(255, 255, 255, 0.95);
+  opacity: 0.95;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));
 }
 
 /* Found text */
@@ -2783,7 +2788,7 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  color: rgba(147, 197, 253, 0.9);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 1.4rem;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -2844,7 +2849,7 @@
     border-radius 900ms cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 420ms ease-out,
     opacity 520ms ease-out;
-    transform-origin: center;
+  transform-origin: center;
 }
 
 .past-open-zoom-shell::before {

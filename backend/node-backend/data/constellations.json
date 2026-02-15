@@ -871,6 +871,3712 @@
       },
       "createdAt": "2026-02-15T09:00:46.451Z",
       "updatedAt": "2026-02-15T09:00:46.451Z"
+    },
+    {
+      "id": "const_1771147204772_9rwzjp",
+      "title": "integration",
+      "query": "integration",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Integration\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T09:20:04.771Z",
+      "updatedAt": "2026-02-15T09:20:04.771Z"
+    },
+    {
+      "id": "const_1771147493809_iuluvo",
+      "title": "integration",
+      "query": "integration",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Integration\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T09:24:53.809Z",
+      "updatedAt": "2026-02-15T09:24:53.809Z"
+    },
+    {
+      "id": "const_1771147552341_hxj1q0",
+      "title": "fdas",
+      "query": "fdas",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Fdas\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T09:25:52.341Z",
+      "updatedAt": "2026-02-15T09:25:52.341Z"
+    },
+    {
+      "id": "const_1771148000186_84ihfc",
+      "title": "integration",
+      "query": "integration",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Integration\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T09:33:20.186Z",
+      "updatedAt": "2026-02-15T09:33:20.186Z"
+    },
+    {
+      "id": "const_1771150196608_gnisz5",
+      "title": "integration",
+      "query": "integration",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Integration\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:09:56.608Z",
+      "updatedAt": "2026-02-15T10:09:56.608Z"
+    },
+    {
+      "id": "const_1771150509281_2n2hu6",
+      "title": "integration",
+      "query": "integration",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Integration\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:15:09.281Z",
+      "updatedAt": "2026-02-15T10:15:09.281Z"
+    },
+    {
+      "id": "const_1771151333973_kvqsmt",
+      "title": "physics",
+      "query": "physics",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Physics\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:28:53.972Z",
+      "updatedAt": "2026-02-15T10:28:53.972Z"
+    },
+    {
+      "id": "const_1771151430829_nmrw1d",
+      "title": "Gemini",
+      "query": "Gemini",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Gemini\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:30:30.829Z",
+      "updatedAt": "2026-02-15T10:30:30.829Z"
+    },
+    {
+      "id": "const_1771151599207_lulult",
+      "title": "integral",
+      "query": "integral",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Integral\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:33:19.207Z",
+      "updatedAt": "2026-02-15T10:33:19.207Z"
+    },
+    {
+      "id": "const_1771151641055_7elv8t",
+      "title": "racing",
+      "query": "racing",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Racing\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:34:01.054Z",
+      "updatedAt": "2026-02-15T10:34:01.054Z"
+    },
+    {
+      "id": "const_1771151779499_1rgxwk",
+      "title": "cars",
+      "query": "cars",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Cars\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:36:19.499Z",
+      "updatedAt": "2026-02-15T10:36:19.499Z"
+    },
+    {
+      "id": "const_1771152135206_849ytw",
+      "title": "physics",
+      "query": "physics",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Physics\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:42:15.206Z",
+      "updatedAt": "2026-02-15T10:42:15.206Z"
+    },
+    {
+      "id": "const_1771152197285_8s59q8",
+      "title": "physics",
+      "query": "physics",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Physics\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:43:17.285Z",
+      "updatedAt": "2026-02-15T10:43:17.285Z"
+    },
+    {
+      "id": "const_1771152370614_1iesjl",
+      "title": "linear algebra",
+      "query": "linear algebra",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Linear algebra\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:46:10.614Z",
+      "updatedAt": "2026-02-15T10:46:10.614Z"
+    },
+    {
+      "id": "const_1771152445069_2qvx31",
+      "title": "linear algebra",
+      "query": "linear algebra",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Linear algebra\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:47:25.069Z",
+      "updatedAt": "2026-02-15T10:47:25.069Z"
+    },
+    {
+      "id": "const_1771152500418_t9mfpr",
+      "title": "linear algebra",
+      "query": "linear algebra",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Linear algebra\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:48:20.418Z",
+      "updatedAt": "2026-02-15T10:48:20.418Z"
+    },
+    {
+      "id": "const_1771152788079_yg0rta",
+      "title": "linear algebra",
+      "query": "linear algebra",
+      "tags": [],
+      "graph": {
+        "nodes": [
+          {
+            "id": "basics",
+            "label": "Linear algebra\nBasics",
+            "status": "active",
+            "level": 1,
+            "description": "Fundamental concepts and introduction"
+          },
+          {
+            "id": "terminology",
+            "label": "Key\nTerminology",
+            "status": "locked",
+            "level": 1,
+            "description": "Essential vocabulary and definitions"
+          },
+          {
+            "id": "fundamentals",
+            "label": "Core\nFundamentals",
+            "status": "locked",
+            "level": 2,
+            "description": "Essential principles and practices"
+          },
+          {
+            "id": "concepts-1",
+            "label": "Core\nConcepts I",
+            "status": "locked",
+            "level": 2,
+            "description": "First set of core ideas"
+          },
+          {
+            "id": "concepts-2",
+            "label": "Core\nConcepts II",
+            "status": "locked",
+            "level": 2,
+            "description": "Second set of core ideas"
+          },
+          {
+            "id": "intermediate-1",
+            "label": "Intermediate\nTopics I",
+            "status": "locked",
+            "level": 3,
+            "description": "Building on the foundations"
+          },
+          {
+            "id": "intermediate-2",
+            "label": "Intermediate\nTopics II",
+            "status": "locked",
+            "level": 3,
+            "description": "Expanding knowledge"
+          },
+          {
+            "id": "intermediate-3",
+            "label": "Intermediate\nTopics III",
+            "status": "locked",
+            "level": 3,
+            "description": "Advanced fundamentals"
+          },
+          {
+            "id": "advanced-1",
+            "label": "Advanced\nTopics I",
+            "status": "locked",
+            "level": 4,
+            "description": "Deep dive into complex areas"
+          },
+          {
+            "id": "advanced-2",
+            "label": "Advanced\nTopics II",
+            "status": "locked",
+            "level": 4,
+            "description": "Specialized knowledge"
+          },
+          {
+            "id": "advanced-3",
+            "label": "Advanced\nTopics III",
+            "status": "locked",
+            "level": 4,
+            "description": "Expert techniques"
+          },
+          {
+            "id": "practical-1",
+            "label": "Practical\nApplications I",
+            "status": "locked",
+            "level": 5,
+            "description": "Real-world projects"
+          },
+          {
+            "id": "practical-2",
+            "label": "Practical\nApplications II",
+            "status": "locked",
+            "level": 5,
+            "description": "Use cases and examples"
+          },
+          {
+            "id": "integration",
+            "label": "System\nIntegration",
+            "status": "locked",
+            "level": 5,
+            "description": "Combining concepts together"
+          },
+          {
+            "id": "optimization",
+            "label": "Performance &\nOptimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Efficiency and best practices"
+          },
+          {
+            "id": "mastery",
+            "label": "Mastery &\nExpertise",
+            "status": "locked",
+            "level": 6,
+            "description": "Expert-level skills"
+          }
+        ],
+        "links": [
+          {
+            "source": "basics",
+            "target": "terminology"
+          },
+          {
+            "source": "basics",
+            "target": "fundamentals"
+          },
+          {
+            "source": "terminology",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-1"
+          },
+          {
+            "source": "fundamentals",
+            "target": "concepts-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-1"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-1",
+            "target": "intermediate-2"
+          },
+          {
+            "source": "concepts-2",
+            "target": "intermediate-3"
+          },
+          {
+            "source": "intermediate-1",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-1"
+          },
+          {
+            "source": "intermediate-2",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-2"
+          },
+          {
+            "source": "intermediate-3",
+            "target": "advanced-3"
+          },
+          {
+            "source": "advanced-1",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-1"
+          },
+          {
+            "source": "advanced-2",
+            "target": "practical-2"
+          },
+          {
+            "source": "advanced-3",
+            "target": "practical-2"
+          },
+          {
+            "source": "practical-1",
+            "target": "integration"
+          },
+          {
+            "source": "practical-2",
+            "target": "integration"
+          },
+          {
+            "source": "integration",
+            "target": "optimization"
+          },
+          {
+            "source": "optimization",
+            "target": "mastery"
+          },
+          {
+            "source": "practical-2",
+            "target": "mastery"
+          }
+        ]
+      },
+      "createdAt": "2026-02-15T10:53:08.079Z",
+      "updatedAt": "2026-02-15T10:53:08.079Z"
     }
   ]
 }

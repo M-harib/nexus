@@ -1,6 +1,9 @@
 // API Service for Backend Integration
-const API_BASE_URL = 'http://localhost:5001';
-const API_FALLBACK_BASE_URL = 'http://localhost:5000';
+// In Vite dev, use same-origin `/api` with proxy to avoid CORS/preflight issues.
+const API_BASE_URL = import.meta.env.DEV
+  ? ''
+  : (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
 // Helper function to handle API errors
 const handleResponse = async (response) => {
@@ -14,7 +17,7 @@ const handleResponse = async (response) => {
 // Get the knowledge graph
 export const fetchKnowledgeGraph = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/graph`);
+    const response = await fetch(apiUrl('/api/graph'));
     const data = await handleResponse(response);
     return data.data; // Returns the graph object
   } catch (error) {
@@ -26,7 +29,7 @@ export const fetchKnowledgeGraph = async () => {
 // Get user progress
 export const fetchUserProgress = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/progress`);
+    const response = await fetch(apiUrl('/api/progress'));
     const data = await handleResponse(response);
     return data; // Returns { success, stats, userProgress }
   } catch (error) {
@@ -48,7 +51,7 @@ export const completeNode = async (nodeId, score = null) => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/node/${nodeId}/complete`, {
+    const response = await fetch(apiUrl(`/api/node/${nodeId}/complete`), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -88,7 +91,7 @@ export const verifyExplanation = async (
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/verify`, {
+    const response = await fetch(apiUrl('/api/verify'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -134,7 +137,7 @@ export const generateStarTrialQuestions = async (nodeId, nodeData = null) => {
   };
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/star-trial/questions`, {
+    const response = await fetch(apiUrl('/api/star-trial/questions'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -155,7 +158,7 @@ export const generateStarTrialQuestions = async (nodeId, nodeData = null) => {
 // Reset progress (for testing)
 export const resetProgress = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/reset`, {
+    const response = await fetch(apiUrl('/api/reset'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -172,7 +175,7 @@ export const resetProgress = async () => {
 // Generate custom tree (bonus feature - requires LLM)
 export const generateCustomTree = async (topic, difficulty = 'medium') => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/generate-tree`, {
+    const response = await fetch(apiUrl('/api/generate-tree'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -203,7 +206,7 @@ export const transcribeAudio = async (audioBlob, filename = 'recording.webm') =>
   const formData = new FormData();
   formData.append('audio', audioBlob, filename);
 
-  const response = await fetch(`${API_BASE_URL}/api/voice/transcribe`, {
+  const response = await fetch(apiUrl('/api/voice/transcribe'), {
     method: 'POST',
     body: formData, // no Content-Type header – browser sets multipart boundary
   });
@@ -223,7 +226,7 @@ export const transcribeAudio = async (audioBlob, filename = 'recording.webm') =>
 // Check if backend is running
 export const checkBackendHealth = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/`);
+    const response = await fetch(apiUrl('/api/graph'));
     const data = await handleResponse(response);
     return data;
   } catch (error) {
@@ -233,9 +236,7 @@ export const checkBackendHealth = async () => {
 };
 
 // Past constellations CRUD (local JSON-backed on backend)
-const constellationApiBases = [API_BASE_URL, API_FALLBACK_BASE_URL].filter(
-  (base, idx, arr) => arr.indexOf(base) === idx
-);
+const constellationApiBases = [API_BASE_URL];
 
 const requestConstellationApi = async (path, options = {}) => {
   let lastError = null;

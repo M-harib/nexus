@@ -233,6 +233,8 @@ function App() {
         setConstellationLeaveTransition(false);
         setConstellationMode(false);
         setConstellationReady(false);
+        setFadingOut(false);
+        setTelescopeMode(false);
         setActivePage(pageId);
         constellationLeaveTimerRef.current = null;
       }, CONSTELLATION_LEAVE_DISSOLVE_MS);
@@ -250,10 +252,8 @@ function App() {
     }
   };
 
-  const handleOpenPastConstellation = (item, transitionMeta = {}) => {
+  const handleOpenPastConstellation = (item) => {
     if (!item?.graph?.nodes || !item?.graph?.links) return;
-    clearPastOpenTimers();
-    setPastOpenTransition(null);
     setSearchQuery(item.query || item.title || '');
     setConstellationTopic(item.title || item.query || 'Knowledge');
     setConstellationData(null);
@@ -267,50 +267,10 @@ function App() {
       __fromPastOpen: true
     });
     setFadingOut(true);
-    pastOpenTimersRef.current.push(setTimeout(() => {
+    setTimeout(() => {
       setActivePage('create');
       setTelescopeMode(true);
-    }, MAIN_UI_FADE_MS));
-
-    const shell = {
-      phase: 'glisten',
-      originRect: transitionMeta?.originRect || null,
-      stars: transitionMeta?.previewStars || buildSeededStars(item.id)
-    };
-    setPastOpenTransition(shell);
-
-    const toEnvelopMs = PAST_OPEN_GLINT_MS;
-    const toDissolveMs = PAST_OPEN_GLINT_MS + PAST_OPEN_ENVELOP_MS;
-    const mountConstellationMs = toDissolveMs;
-    const endTransitionMs = toDissolveMs + PAST_OPEN_DISSOLVE_MS;
-
-    pastOpenTimersRef.current.push(setTimeout(() => {
-      setPastOpenTransition((prev) => (prev ? { ...prev, phase: 'envelop' } : prev));
-    }, toEnvelopMs));
-
-    pastOpenTimersRef.current.push(setTimeout(() => {
-      setSearchQuery(item.query || '');
-      setConstellationTopic(item.title || item.query || 'Knowledge');
-      setConstellationData(item.graph);
-      setConstellationMode(true);
-      setConstellationReady(false);
-      setActivePage('create');
-      setFadingOut(false);
-      setTelescopeMode(false);
-    }, mountConstellationMs));
-
-    pastOpenTimersRef.current.push(setTimeout(() => {
-      setPastOpenTransition((prev) => (prev ? { ...prev, phase: 'dissolve' } : prev));
-    }, toDissolveMs));
-
-    pastOpenTimersRef.current.push(setTimeout(() => {
-      setConstellationReady(true);
-    }, toDissolveMs + 160));
-
-    pastOpenTimersRef.current.push(setTimeout(() => {
-      setPastOpenTransition(null);
-      clearPastOpenTimers();
-    }, endTransitionMs));
+    }, MAIN_UI_FADE_MS);
   };
 
   const handleSettingsChange = (patch) => {

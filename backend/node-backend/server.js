@@ -13,6 +13,12 @@ const treeRoutes = require('./src/routes/treeRoutes');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// Core middleware
+app.use(cors());
+app.options('*', cors());
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true }));
+
 // Initialize Gemini AI
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 console.log('🔑 Loading GEMINI_API_KEY:', GEMINI_API_KEY ? `"${GEMINI_API_KEY.substring(0, 4)}...${GEMINI_API_KEY.substring(GEMINI_API_KEY.length - 4)}"` : 'Not Found');
@@ -1286,4 +1292,3 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
-
