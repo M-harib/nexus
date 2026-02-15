@@ -721,7 +721,7 @@ export default function ConstellationView({
     loadGraphData();
   }, [userPrompt, query, initialGraphData, onTopicResolved]);
 
-  // Handle node click - open boss fight for active nodes
+  // Handle node click - open star trial for active nodes
   const handleNodeClick = (node) => {
     setSelectedNode(node);
     const normalizedStatus = normalizeNodeStatus(node);
@@ -731,7 +731,7 @@ export default function ConstellationView({
     }
   };
 
-  // Handle boss fight completion
+  // Handle star trial completion
   const handleBossFightComplete = async (nodeId, explanation, verificationResult) => {
     try {
       // Find the node data to pass to backend
@@ -814,7 +814,7 @@ export default function ConstellationView({
             : `Best Score: ${previousBest}/100 → ${currentBest}/100`;
           setToast({
             type: 'success',
-            title: '🏆 Boss Defeated!',
+            title: '🏆 Star Trial Passed!',
             lines: [
               `Attempt Score: ${verifyResult.score}/100`,
               bestChangeLine,
@@ -835,7 +835,7 @@ export default function ConstellationView({
         });
       }
     } catch (err) {
-      console.error('Error completing boss fight:', err);
+      console.error('Error completing star trial:', err);
       setToast({
         type: 'error',
         title: '⚠️ Error',
@@ -1214,7 +1214,7 @@ export default function ConstellationView({
         )}
       </AnimatePresence>
 
-      {/* Boss Fight Modal */}
+      {/* Star Trial Modal */}
       {showBossFight && currentBossNode && (
         <BossFightModal
           node={currentBossNode}

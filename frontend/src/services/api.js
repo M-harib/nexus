@@ -35,7 +35,7 @@ export const fetchUserProgress = async () => {
   }
 };
 
-// Complete a node (after passing boss fight)
+// Complete a node (after passing Star Trial)
 export const completeNode = async (nodeId, score = null) => {
   // Debug mode: auto-return successful completion
   if (DEBUG_AUTO_PASS) {
@@ -66,8 +66,15 @@ export const completeNode = async (nodeId, score = null) => {
 // Debug flag to auto-pass verification
 const DEBUG_AUTO_PASS = false;
 
-// Verify user explanation (for boss fight)
-export const verifyExplanation = async (nodeId, explanation, audioData = null, nodeData = null) => {
+// Verify user explanation + star-trial critical thinking answers
+export const verifyExplanation = async (
+  nodeId,
+  explanation,
+  audioData = null,
+  nodeData = null,
+  trialAnswers = [],
+  trialQuestions = []
+) => {
   // Debug mode: auto-pass all verifications
   if (DEBUG_AUTO_PASS) {
     return {
@@ -91,6 +98,8 @@ export const verifyExplanation = async (nodeId, explanation, audioData = null, n
         explanation,
         audioData,
         node: nodeData, // Pass the full node object
+        trialAnswers,
+        trialQuestions
       }),
     });
     const data = await handleResponse(response);
@@ -98,6 +107,48 @@ export const verifyExplanation = async (nodeId, explanation, audioData = null, n
   } catch (error) {
     console.error('Error verifying explanation:', error);
     throw error;
+  }
+};
+
+// Generate two critical-thinking questions for a star trial
+export const generateStarTrialQuestions = async (nodeId, nodeData = null) => {
+  const topic = String(nodeData?.label || 'this concept').replace(/\n/g, ' ');
+  const fallback = {
+    success: true,
+    usingFallback: true,
+    fallbackReason: 'Endpoint unavailable',
+    questions: [
+      {
+        id: 'q1',
+        prompt: `How would you apply ${topic} in a real scenario, and why does that approach work?`,
+        whatToLookFor: ['applies concept', 'reasoning'],
+        difficulty: 'medium'
+      },
+      {
+        id: 'q2',
+        prompt: `What is a common misconception about ${topic}, and how would you correct it?`,
+        whatToLookFor: ['identifies misconception', 'corrective explanation'],
+        difficulty: 'medium'
+      }
+    ]
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/star-trial/questions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nodeId,
+        node: nodeData
+      }),
+    });
+    const data = await handleResponse(response);
+    return data;
+  } catch (error) {
+    console.warn('Star trial questions endpoint unavailable, using fallback prompts:', error?.message || error);
+    return fallback;
   }
 };
 
