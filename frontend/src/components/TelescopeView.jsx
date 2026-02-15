@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { generateCustomTree } from '../services/api';
 
 const DIRECTIONS = ['left', 'right', 'up', 'down'];
@@ -21,51 +21,71 @@ function parseGraphPayload(payload) {
   return null;
 }
 
-function generateLensStars(count) {
-  const stars = [];
-  for (let i = 0; i < count; i += 1) {
-    stars.push({
-      id: i,
-      x: Math.random() * 200 - 50,
-      y: Math.random() * 200 - 50,
-      size: Math.random() * 2.5 + 1.2,
-      pulseDuration: 3 + Math.random() * 3,
-      delay: Math.random() * 4,
-    });
-  }
-  return stars;
+function mapMainCoordToLens(value) {
+  return (value + 50) / 2;
 }
 
-function generateGeminiStars(count) {
-  const stars = [];
-  const nearViewportCount = Math.max(6, Math.floor(count * 0.65));
+function buildConstellationPreview(payload) {
+  const graph = parseGraphPayload(payload);
+  if (!graph?.nodes?.length) return null;
 
-  for (let i = 0; i < nearViewportCount; i += 1) {
-    stars.push({
-      id: i,
-      x: randomBetween(34, 70),
-      y: randomBetween(30, 68),
-      size: randomBetween(18, 34),
-      rotation: randomBetween(-18, 18),
-      pulseDuration: randomBetween(3.5, 6.5),
-      delay: randomBetween(0, 5),
-      opacity: randomBetween(0.45, 0.85),
-    });
-  }
+  const baseNodes = graph.nodes.map((node, index) => ({
+    id: getNodeId(node?.id ?? node?.name ?? index),
+    x: Number(node?.x),
+    y: Number(node?.y),
+    size: Number(node?.size) || 1.2,
+    index,
+  }));
 
-  for (let i = nearViewportCount; i < count; i += 1) {
-    stars.push({
-      id: i,
-      x: randomBetween(-35, 135),
-      y: randomBetween(-35, 135),
-      size: randomBetween(14, 30),
-      rotation: randomBetween(-25, 25),
-      pulseDuration: randomBetween(4, 8),
-      delay: randomBetween(0, 6),
-      opacity: randomBetween(0.25, 0.65),
+  const hasExplicitPositions = baseNodes.every((node) => Number.isFinite(node.x) && Number.isFinite(node.y));
+  const placedNodes = hasExplicitPositions
+    ? (() => {
+      const xs = baseNodes.map((node) => node.x);
+      const ys = baseNodes.map((node) => node.y);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const spanX = Math.max(1, maxX - minX);
+      const spanY = Math.max(1, maxY - minY);
+      return baseNodes.map((node) => ({
+        ...node,
+        x: 18 + ((node.x - minX) / spanX) * 64,
+        y: 18 + ((node.y - minY) / spanY) * 64,
+      }));
+    })()
+    : baseNodes.map((node, index) => {
+      const t = (index / Math.max(1, baseNodes.length)) * Math.PI * 2;
+      return {
+        ...node,
+        x: 50 + Math.cos(t) * 26,
+        y: 50 + Math.sin(t) * 26,
+      };
     });
-  }
-  return stars;
+
+  const nodeById = new Map(placedNodes.map((node) => [node.id, node]));
+  const links = (graph.links || []).map((link, index) => {
+    const sourceId = getNodeId(link?.source);
+    const targetId = getNodeId(link?.target);
+    const source = nodeById.get(sourceId);
+    const target = nodeById.get(targetId);
+    if (!source || !target) return null;
+    return {
+      id: `${sourceId}-${targetId}-${index}`,
+      x1: source.x,
+      y1: source.y,
+      x2: target.x,
+      y2: target.y,
+    };
+  }).filter(Boolean);
+
+  return {
+    nodes: placedNodes.map((node) => ({
+      ...node,
+      r: Math.max(0.8, Math.min(2.2, 0.9 + node.size * 0.35)),
+    })),
+    links,
+  };
 }
 
 function generateNebulas(count) {
@@ -113,10 +133,75 @@ function generateNebulas(count) {
   return nebulas;
 }
 
-function TelescopeView({ query, onComplete }) {
+function TelescopeView({ query, onComplete, initialStarField }) {
   const [phase, setPhase] = useState('pan-up');
-  const [lensStars] = useState(() => generateLensStars(200));
-  const [geminiStars] = useState(() => generateGeminiStars(12));
+  const [lensStars] = useState(() => {
+    if (initialStarField?.stars?.length) {
+      return initialStarField.stars.map((star) => ({
+        id: star.id,
+        x: mapMainCoordToLens(star.x),
+        y: mapMainCoordToLens(star.y),
+        size: Math.max(1, star.size),
+        pulseDuration: Math.max(2.4, star.pulseDuration || 3),
+        delay: star.pulseDelay || 0,
+      }));
+    }
+
+    const stars = [];
+    for (let i = 0; i < 200; i += 1) {
+      stars.push({
+        id: i,
+        x: Math.random() * 200 - 50,
+        y: Math.random() * 200 - 50,
+        size: Math.random() * 2.5 + 1.2,
+        pulseDuration: 3 + Math.random() * 3,
+        delay: Math.random() * 4,
+      });
+    }
+    return stars;
+  });
+  const [geminiStars] = useState(() => {
+    if (initialStarField?.gemini?.length) {
+      return initialStarField.gemini.map((star) => ({
+        id: star.id,
+        x: mapMainCoordToLens(star.x),
+        y: mapMainCoordToLens(star.y),
+        size: star.size,
+        rotation: star.rotation,
+        pulseDuration: Math.max(3.5, star.pulseDuration || 4),
+        delay: star.pulseDelay || 0,
+        opacity: star.opacity,
+      }));
+    }
+
+    const stars = [];
+    const nearViewportCount = 8;
+    for (let i = 0; i < nearViewportCount; i += 1) {
+      stars.push({
+        id: i,
+        x: randomBetween(34, 70),
+        y: randomBetween(30, 68),
+        size: randomBetween(18, 34),
+        rotation: randomBetween(-18, 18),
+        pulseDuration: randomBetween(3.5, 6.5),
+        delay: randomBetween(0, 5),
+        opacity: randomBetween(0.45, 0.85),
+      });
+    }
+    for (let i = nearViewportCount; i < 12; i += 1) {
+      stars.push({
+        id: i,
+        x: randomBetween(-35, 135),
+        y: randomBetween(-35, 135),
+        size: randomBetween(14, 30),
+        rotation: randomBetween(-25, 25),
+        pulseDuration: randomBetween(4, 8),
+        delay: randomBetween(0, 6),
+        opacity: randomBetween(0.25, 0.65),
+      });
+    }
+    return stars;
+  });
   const [nebulas] = useState(() => generateNebulas(6));
   const [searching, setSearching] = useState(false);
   const [found, setFound] = useState(false);
@@ -127,6 +212,7 @@ function TelescopeView({ query, onComplete }) {
   const [streakPhase, setStreakPhase] = useState(null);
   const [constellationZoom, setConstellationZoom] = useState(false);
   const [generatedTree, setGeneratedTree] = useState(null);
+  const previewConstellation = useMemo(() => buildConstellationPreview(generatedTree), [generatedTree]);
 
   const timersRef = useRef([]);
   const searchLoopRef = useRef(true);
@@ -227,7 +313,7 @@ function TelescopeView({ query, onComplete }) {
         if (onComplete) {
           setTimeout(() => {
             if (!cancelled) onComplete(tree);
-          }, FOUND_ZOOM_MS + 400);
+          }, FOUND_ZOOM_MS + 120);
         }
       } catch (error) {
         console.error('Error generating tree:', error);
@@ -251,7 +337,7 @@ function TelescopeView({ query, onComplete }) {
     }
     const zoomTimer = setTimeout(() => {
       setConstellationZoom(true);
-    }, 300);
+    }, 180);
     return () => clearTimeout(zoomTimer);
   }, [found]);
 
@@ -308,7 +394,7 @@ function TelescopeView({ query, onComplete }) {
   const streakClass = panDir ? `streaking-${panDir}` : '';
   const phaseClass = streakPhase ? `streak-${streakPhase}` : '';
   const speedClass = panSpeed && panSpeed <= 2750 ? 'streak-fast' : panSpeed ? 'streak-slow' : '';
-  const sceneClass = `${phase}${phase === 'found' ? ' zoom-lens' : ''}`;
+  const sceneClass = `${phase}${phase === 'found' ? ' zoom-lens' : ''}${phase === 'zoom-lens' && !searching ? ' pre-search' : ''}`;
 
   return (
     <div className="telescope-overlay">
@@ -371,9 +457,39 @@ function TelescopeView({ query, onComplete }) {
           ))}
         </div>
 
-        <div className={`telescope-darkness-mask ${(searching || found) ? 'active' : ''} ${constellationZoom ? 'expand-out' : ''}`} />
+        <div className={`telescope-darkness-mask active ${constellationZoom ? 'expand-out' : ''}`} />
         <div className={`telescope-circle ${constellationZoom ? 'expand-out-circle' : ''}`} />
         <div className={`telescope-circle-inner ${constellationZoom ? 'expand-out-circle-inner' : ''}`} />
+
+        {found && previewConstellation && (
+          <div className={`found-constellation ${constellationZoom ? 'zoom-in' : ''}`}>
+            <div className="found-constellation-center">
+              <svg className="constellation-svg-found" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                {previewConstellation.links.map((link, index) => (
+                  <line
+                    key={`found-link-${link.id}`}
+                    x1={link.x1}
+                    y1={link.y1}
+                    x2={link.x2}
+                    y2={link.y2}
+                    className="constellation-line-found"
+                    style={{ animationDelay: `${index * 35}ms` }}
+                  />
+                ))}
+                {previewConstellation.nodes.map((node, index) => (
+                  <circle
+                    key={`found-node-${node.id}`}
+                    cx={node.x}
+                    cy={node.y}
+                    r={node.r}
+                    className="constellation-dot-found"
+                    style={{ animationDelay: `${index * 28}ms` }}
+                  />
+                ))}
+              </svg>
+            </div>
+          </div>
+        )}
 
         {searching && !found && (
           <div className="lens-search-text">

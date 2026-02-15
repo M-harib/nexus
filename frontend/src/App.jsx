@@ -11,6 +11,7 @@ import ConstellationView from './components/ConstellationView';
 import PastConstellationsView from './components/PastConstellationsView';
 import ProfileView from './components/ProfileView';
 import { createPastConstellation } from './services/api';
+import { generateMainStarField } from './utils/starField';
 
 const MAIN_UI_FADE_MS = 900;
 
@@ -54,6 +55,7 @@ function App() {
   const [mainVisible, setMainVisible] = useState(false);
   const [mainEntering, setMainEntering] = useState(false);
   const [mainEntrySequence, setMainEntrySequence] = useState(0);
+  const [sharedStarField, setSharedStarField] = useState(() => generateMainStarField());
   const [telescopeMode, setTelescopeMode] = useState(false);
   const [constellationMode, setConstellationMode] = useState(false);
   const [constellationReady, setConstellationReady] = useState(false);
@@ -67,6 +69,7 @@ function App() {
     setShowSplash(false);
     setMainVisible(true);
     setMainEntering(true);
+    setSharedStarField(generateMainStarField());
     setMainEntrySequence(prev => prev + 1);
   };
 
@@ -162,6 +165,7 @@ function App() {
         panUpTransition={fadingOut || telescopeMode || showConstellationView}
         showStars={!showSplash}
         mainEntrySequence={mainEntrySequence}
+        initialStarField={sharedStarField}
       />
 
       {/* Splash screen overlays on top */}
@@ -215,7 +219,13 @@ function App() {
       {showMainUI && !showSplash && (
         <div className={`app-container flex h-screen w-screen text-gray-100 overflow-hidden relative ${mainVisible && mainEntering ? 'main-enter' : ''}`}>
           {/* Telescope overlay */}
-          {telescopeMode && <TelescopeView query={searchQuery} onComplete={handleTelescopeComplete} />}
+          {telescopeMode && (
+            <TelescopeView
+              query={searchQuery}
+              onComplete={handleTelescopeComplete}
+              initialStarField={sharedStarField}
+            />
+          )}
 
           <div className={`main-ui-layer ${fadingOut ? 'main-ui-shift-up' : ''}`}>
             <div className="sidebar">

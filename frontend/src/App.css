@@ -1728,6 +1728,7 @@
 .telescope-scene-wrap {
   position: absolute;
   inset: 0;
+  --telescope-pan-accelerate: cubic-bezier(0.62, 0, 0.86, 0.34);
 }
 
 /* Night sky background */
@@ -1767,6 +1768,8 @@
 .gemini-star {
   position: absolute;
   pointer-events: none;
+  overflow: visible;
+  background: transparent;
   opacity: 1;
   animation: gemini-pulse ease-in-out infinite;
   transform-origin: center;
@@ -1785,6 +1788,7 @@
   content: '';
   position: absolute;
   inset: 0;
+  background-color: transparent;
 }
 
 /* Long-arm 4-point star with compact center (Gemini-like icon) */
@@ -1813,7 +1817,7 @@
       2% 50%,
       46% 45%);
   background: radial-gradient(circle at center, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.12) 52%, transparent 74%);
-  filter: blur(1.6px);
+  filter: blur(0.8px);
 }
 
 @keyframes gemini-pulse {
@@ -1827,7 +1831,6 @@
   50% {
     opacity: var(--gem-opacity, 0.5);
     transform: rotate(var(--gem-rotation, 0deg)) scale(1.05);
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
   }
 }
 
@@ -1931,24 +1934,84 @@
 }
 
 .telescope-scene-wrap.pan-up .lens-star {
-  box-shadow: 0 -12px 10px rgba(255, 255, 255, 0.24);
-  animation: pan-up-bridge-lens-star 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  box-shadow: 0 8px 8px rgba(255, 255, 255, 0.2);
+  animation: pan-up-bridge-lens-star 900ms var(--telescope-pan-accelerate) forwards;
+}
+
+.telescope-scene-wrap.pan-up .lens-star::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 2.2px;
+  height: 8px;
+  transform: translateX(-50%);
+  background: linear-gradient(to top, transparent, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.74));
+  border-radius: 0 0 50% 50%;
+  filter: blur(0.4px);
+  animation: pan-up-tail-lens 900ms var(--telescope-pan-accelerate) forwards;
 }
 
 .telescope-scene-wrap.pan-up .gemini-star {
-  box-shadow: 0 -14px 12px rgba(255, 255, 255, 0.2);
-  animation: pan-up-bridge-gemini 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  box-shadow: 0 10px 10px rgba(255, 255, 255, 0.18);
+  animation: pan-up-bridge-gemini 900ms var(--telescope-pan-accelerate) forwards;
+}
+
+.telescope-scene-wrap.pan-up .gemini-star::after {
+  filter: blur(0.7px);
+  box-shadow: 0 16px 16px rgba(255, 255, 255, 0.24);
+  animation: pan-up-tail-gemini 900ms var(--telescope-pan-accelerate) forwards;
 }
 
 @keyframes pan-up-bridge-lens-star {
   0% {
     transform: translateY(-80px) scale(0.8);
     opacity: 0;
+    box-shadow: 0 2px 2px rgba(255, 255, 255, 0.1);
+  }
+
+  12% {
+    transform: translateY(-80px) scale(0.8);
+    opacity: 0.25;
+    box-shadow: 0 2px 2px rgba(255, 255, 255, 0.1);
+  }
+
+  45% {
+    opacity: 0.78;
+    box-shadow: 0 8px 8px rgba(255, 255, 255, 0.2);
   }
 
   100% {
-    transform: translateY(0) scale(1);
-    opacity: 0.85;
+    transform: translateY(38px) scale(1.04);
+    opacity: 0;
+    box-shadow: 0 18px 12px rgba(255, 255, 255, 0.32);
+  }
+}
+
+@keyframes pan-up-tail-lens {
+  0% {
+    height: 8px;
+    opacity: 0;
+  }
+
+  12% {
+    height: 8px;
+    opacity: 0.24;
+  }
+
+  42% {
+    height: 22px;
+    opacity: 0.52;
+  }
+
+  78% {
+    height: 58px;
+    opacity: 0.86;
+  }
+
+  100% {
+    height: 76px;
+    opacity: 0;
   }
 }
 
@@ -1956,12 +2019,59 @@
   0% {
     transform: rotate(var(--gem-rotation, 0deg)) translateY(-70px) scale(0.75);
     opacity: 0;
+    box-shadow: 0 2px 2px rgba(255, 255, 255, 0.08);
+  }
+
+  12% {
+    transform: rotate(var(--gem-rotation, 0deg)) translateY(-70px) scale(0.75);
+    opacity: calc(var(--gem-opacity, 0.6) * 0.24);
+    box-shadow: 0 2px 2px rgba(255, 255, 255, 0.08);
+  }
+
+  45% {
+    opacity: calc(var(--gem-opacity, 0.6) * 0.62);
+    box-shadow: 0 9px 10px rgba(255, 255, 255, 0.2);
   }
 
   100% {
-    transform: rotate(var(--gem-rotation, 0deg)) translateY(0) scale(1);
-    opacity: var(--gem-opacity, 0.6);
+    transform: rotate(var(--gem-rotation, 0deg)) translateY(34px) scale(1.04);
+    opacity: 0;
+    box-shadow: 0 18px 14px rgba(255, 255, 255, 0.3);
   }
+}
+
+@keyframes pan-up-tail-gemini {
+  0% {
+    opacity: 0;
+    filter: blur(0.2px);
+  }
+
+  12% {
+    opacity: 0.2;
+    filter: blur(0.2px);
+  }
+
+  45% {
+    opacity: 0.62;
+    filter: blur(0.45px);
+  }
+
+  80% {
+    opacity: 0.88;
+    filter: blur(1px);
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(1.35px);
+  }
+}
+
+.telescope-scene-wrap.pre-search .lens-star,
+.telescope-scene-wrap.pre-search .gemini-star {
+  opacity: 0 !important;
+  box-shadow: none !important;
+  animation-play-state: paused;
 }
 
 /* ---- Outer circle — expands when found ---- */
@@ -2020,9 +2130,8 @@
     0 0 12px rgba(80, 80, 80, 0.3);
   z-index: 11;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 400ms ease-out,
-    width 2500ms cubic-bezier(0.4, 0, 0.2, 1),
+  opacity: 1;
+  transition: width 2500ms cubic-bezier(0.4, 0, 0.2, 1),
     height 2500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -2038,9 +2147,8 @@
 
 /* Show inner ring once the outer has expanded — grows 20% too */
 .telescope-scene-wrap.zoom-lens .telescope-circle-inner {
-  opacity: 1;
-  width: 396px;
-  height: 396px;
+  width: 475px;
+  height: 475px;
 }
 
 /* Expand circle to create border at screen edges */
@@ -2056,11 +2164,11 @@
 }
 
 .telescope-scene-wrap.pan-up .telescope-circle {
-  animation: circle-pan-up 3000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: circle-pan-up 3000ms var(--telescope-pan-accelerate) forwards;
 }
 
 .telescope-scene-wrap.pan-up .telescope-circle-inner {
-  animation: circle-pan-up 3000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: circle-pan-up 3000ms var(--telescope-pan-accelerate) forwards;
 }
 
 @keyframes scene-fade-in {
@@ -2076,11 +2184,16 @@
 /* Circle pans from bottom of screen to center */
 @keyframes circle-pan-up {
   0% {
-    transform: translate(-50%, calc(100vh + 150px));
+    transform: translate(-50%, calc(-100vh - 150px));
     opacity: 0;
   }
 
-  15% {
+  10% {
+    transform: translate(-50%, calc(-100vh - 150px));
+    opacity: 0.95;
+  }
+
+  18% {
     opacity: 1;
   }
 
@@ -2099,37 +2212,48 @@
   width: 330px;
   height: 330px;
   border-radius: 50%;
-  box-shadow: 0 0 0 300vmax rgba(0, 0, 0, 0.96);
+  box-sizing: border-box;
+  border: 0 solid rgba(0, 0, 0, 0.94);
+  background: transparent;
   opacity: 0;
   transition: opacity 350ms ease-out,
     width 2500ms cubic-bezier(0.4, 0, 0.2, 1),
-    height 2500ms cubic-bezier(0.4, 0, 0.2, 1);
+    height 2500ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-width 2500ms cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
-  z-index: 6;
+  z-index: 9;
 }
 
 .telescope-darkness-mask.active {
   opacity: 1;
-  width: 396px;
-  height: 396px;
+}
+
+.telescope-scene-wrap.zoom-lens .telescope-darkness-mask {
+  width: 165vh;
+  height: 165vh;
+  border-width: calc((165vh - 475px) / 2);
 }
 
 .telescope-darkness-mask.expand-out {
-  animation: overlay-expand-out 1800ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: ring-expand-out 1800ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes overlay-expand-out {
+@keyframes ring-expand-out {
   0% {
-    transform: translate(-50%, -50%) scale(1);
+    width: 165vh;
+    height: 165vh;
+    border-width: calc((165vh - 475px) / 2);
     opacity: 1;
   }
 
-  60% {
-    opacity: 0.3;
+  65% {
+    opacity: 0.72;
   }
 
   100% {
-    transform: translate(-50%, -50%) scale(8);
+    width: 600vh;
+    height: 600vh;
+    border-width: 30px;
     opacity: 0;
   }
 }
@@ -2312,8 +2436,8 @@
 
 @keyframes circle-inner-expand-out {
   0% {
-    width: 396px;
-    height: 396px;
+    width: 475px;
+    height: 475px;
     border-width: 3px;
     opacity: 1;
   }
@@ -2349,7 +2473,7 @@
 }
 
 .found-constellation.zoom-in .found-constellation-center {
-  animation: constellation-zoom-in 2200ms cubic-bezier(0.16, 0.88, 0.3, 1.0) forwards;
+  animation: constellation-zoom-in 1800ms cubic-bezier(0.16, 0.88, 0.3, 1.0) forwards;
 }
 
 @keyframes constellation-appear {
