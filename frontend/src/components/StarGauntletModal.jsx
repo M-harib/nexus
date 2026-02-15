@@ -1,5 +1,6 @@
 import React from 'react';
 import './BossFightModal.css';
+import { evaluateStarGauntletAnswer, generateStarTrialQuestions } from '../services/api';
 
 function normalizeNodeStatus(node) {
   if (typeof node?.status === 'number') {
@@ -23,48 +24,6 @@ function shuffle(list) {
   return arr;
 }
 
-function buildGauntletPrompts(nodes) {
-  const safeNodes = Array.isArray(nodes) ? nodes.filter((node) => node && isMasteredNode(node)) : [];
-  const shuffled = shuffle(safeNodes);
-  const chosen = shuffled.slice(0, 5);
-  while (chosen.length < 5 && safeNodes.length > 0) {
-    chosen.push(safeNodes[chosen.length % safeNodes.length]);
-  }
-  return chosen.map((node, idx) => {
-    const topic = String(node.label || node.id || 'Topic').replace(/\n/g, ' ');
-    if (idx === 0) {
-      return {
-        id: `g-${idx}-${node.id || topic}`,
-        type: 'explanation',
-        node,
-        prompt: `Explain ${topic} clearly in your own words.`
-      };
-    }
-    return {
-      id: `g-${idx}-${node.id || topic}`,
-      type: 'critical',
-      node,
-      prompt: `Apply ${topic} to a concrete scenario and justify your choices.`
-    };
-  });
-}
-
-function scoreAnswer(answer, type) {
-  const text = String(answer || '').trim();
-  const words = text.split(/\s+/).filter(Boolean).length;
-  if (!text) return 0;
-  if (type === 'explanation') {
-    if (words >= 30) return 92;
-    if (words >= 20) return 82;
-    if (words >= 12) return 70;
-    return 55;
-  }
-  if (words >= 24) return 90;
-  if (words >= 15) return 78;
-  if (words >= 9) return 66;
-  return 52;
-}
-
 export default function StarGauntletModal({ graphData, onClose, onComplete }) {
   const [stage, setStage] = React.useState('intro');
   const [error, setError] = React.useState('');
@@ -78,44 +37,109 @@ export default function StarGauntletModal({ graphData, onClose, onComplete }) {
   );
   const canStart = masteredNodes.length > 0;
 
-  const begin = () => {
+  const begin = async () => {
     if (!canStart) {
       setError('No constellation nodes available for gauntlet.');
       return;
     }
-    const generated = buildGauntletPrompts(masteredNodes);
-    setPrompts(generated);
-    setAnswersById(Object.fromEntries(generated.map((q) => [q.id, ''])));
+
     setError('');
-    setStage('input');
+    setStage('loadingQuestions');
+    try {
+      const shuffled = shuffle(masteredNodes);
+      const chosen = shuffled.slice(0, 5);
+      while (chosen.length < 5 && masteredNodes.length > 0) {
+        chosen.push(masteredNodes[chosen.length % masteredNodes.length]);
+      }
+
+      const firstNode = chosen[0];
+      const firstTopic = String(firstNode?.label || firstNode?.id || 'Topic').replace(/\n/g, ' ');
+      const generatedPrompts = [{
+        id: `g-0-${firstNode?.id || 'topic'}`,
+        type: 'explanation',
+        node: firstNode,
+        prompt: `Explain ${firstTopic} clearly in your own words.`
+      }];
+
+      const criticalNodes = chosen.slice(1);
+      const criticalPrompts = await Promise.all(
+        criticalNodes.map(async (node, idx) => {
+          const response = await generateStarTrialQuestions(node.id, node);
+          const questions = Array.isArray(response?.questions) ? response.questions : [];
+          const pick = questions.length > 0 ? questions[idx % questions.length] : null;
+          const fallbackTopic = String(node?.label || node?.id || 'this concept').replace(/\n/g, ' ');
+
+          return {
+            id: `g-${idx + 1}-${node?.id || idx + 1}`,
+            type: 'critical',
+            node,
+            prompt: String(
+              pick?.prompt ||
+              `How would you apply ${fallbackTopic} in a realistic scenario, and why?`
+            )
+          };
+        })
+      );
+
+      const allPrompts = [...generatedPrompts, ...criticalPrompts];
+      setPrompts(allPrompts);
+      setAnswersById(Object.fromEntries(allPrompts.map((item) => [item.id, ''])));
+      setStage('input');
+    } catch (err) {
+      setError(err?.message || 'Failed to prepare Star Gauntlet prompts.');
+      setStage('intro');
+    }
   };
 
-  const submit = () => {
-    const unanswered = prompts.some((q) => String(answersById[q.id] || '').trim().length < 8);
+  const submit = async () => {
+    const unanswered = prompts.some((item) => String(answersById[item.id] || '').trim().length < 8);
     if (unanswered) {
       setError('Please answer all 5 prompts (at least 8 chars each).');
       return;
     }
 
-    const questionScores = prompts.map((q) => ({
-      id: q.id,
-      type: q.type,
-      score: scoreAnswer(answersById[q.id], q.type)
-    }));
-    const total = questionScores.reduce((acc, item) => acc + item.score, 0);
-    const overallScore = Math.round(total / questionScores.length);
+    setError('');
+    setStage('checking');
+    try {
+      const evaluations = await Promise.all(
+        prompts.map(async (item) => {
+          const response = await evaluateStarGauntletAnswer({
+            nodeId: item.node?.id,
+            nodeData: item.node,
+            prompt: item.prompt,
+            answer: answersById[item.id],
+            type: item.type
+          });
+          return {
+            id: item.id,
+            type: item.type,
+            score: Number(response?.score) || 0,
+            passed: Boolean(response?.passed),
+            feedback: String(response?.feedback || '')
+          };
+        })
+      );
 
-    const allMastered = graphData.nodes.every((node) => normalizeNodeStatus(node) === 'mastered');
-    const nextResult = {
-      score: overallScore,
-      passed: overallScore >= 70,
-      allMastered,
-      questionScores
-    };
+      const overallScore = Math.round(
+        evaluations.reduce((sum, item) => sum + item.score, 0) / Math.max(1, evaluations.length)
+      );
+      const allMastered = Array.isArray(graphData?.nodes)
+        ? graphData.nodes.every((node) => normalizeNodeStatus(node) === 'mastered')
+        : false;
+      const nextResult = {
+        score: overallScore,
+        passed: overallScore >= 70,
+        allMastered,
+        questionScores: evaluations
+      };
 
-    setResult(nextResult);
-    setStage('result');
-    onComplete?.(nextResult);
+      setResult(nextResult);
+      setStage('result');
+      onComplete?.(nextResult);
+    } catch (err) {
+      setError(err?.message || 'Failed to evaluate Star Gauntlet answers.');
+      setStage('input');
+    }
   };
 
   return (
@@ -138,20 +162,29 @@ export default function StarGauntletModal({ graphData, onClose, onComplete }) {
           </div>
         )}
 
+        {stage === 'loadingQuestions' && (
+          <div className="stage-content">
+            <div className="analyzing">
+              <div className="spinner" />
+              <p className="status-text">PREPARING STAR GAUNTLET...</p>
+            </div>
+          </div>
+        )}
+
         {stage === 'input' && (
           <div className="stage-content">
             <div className="trial-question-list">
-              {prompts.map((q, idx) => (
-                <div className="trial-question-card" key={q.id}>
+              {prompts.map((item, idx) => (
+                <div className="trial-question-card" key={item.id}>
                   <div className="trial-question-title">
                     {idx === 0 ? 'Explanation Prompt' : `Critical Prompt ${idx}`}
                   </div>
-                  <p className="trial-question-text">{q.prompt}</p>
+                  <p className="trial-question-text">{item.prompt}</p>
                   <textarea
                     className="trial-answer-input"
                     rows={idx === 0 ? 4 : 3}
-                    value={answersById[q.id] || ''}
-                    onChange={(e) => setAnswersById((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                    value={answersById[item.id] || ''}
+                    onChange={(e) => setAnswersById((prev) => ({ ...prev, [item.id]: e.target.value }))}
                     placeholder="Your answer..."
                   />
                 </div>
@@ -164,12 +197,34 @@ export default function StarGauntletModal({ graphData, onClose, onComplete }) {
           </div>
         )}
 
+        {stage === 'checking' && (
+          <div className="stage-content">
+            <div className="analyzing">
+              <div className="spinner" />
+              <p className="status-text">EVALUATING STAR GAUNTLET...</p>
+              <div className="scan-lines" />
+            </div>
+          </div>
+        )}
+
         {stage === 'result' && result && (
           <div className="stage-content">
             <div className={`result ${result.passed ? 'success' : 'failure'}`}>
-              <div className="result-icon">{result.passed ? '✓' : '!'}</div>
+              <div className="result-icon">{result.passed ? 'PASS' : '!'}</div>
               <h3>{result.passed ? 'GAUNTLET COMPLETE' : 'GAUNTLET INCOMPLETE'}</h3>
               <div className="result-score">Score: {result.score}%</div>
+              {Array.isArray(result.questionScores) && result.questionScores.length > 0 && (
+                <div className="feedback-box">
+                  <strong>Gemini Review</strong>
+                  <ul className="trial-review-list">
+                    {result.questionScores.map((item, idx) => (
+                      <li key={item.id}>
+                        Q{idx + 1}: {item.score}/100 - {item.feedback || (item.passed ? 'Passed' : 'Needs more depth')}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {!result.allMastered && (
                 <div className="trial-error" style={{ marginBottom: 10 }}>
                   Personal best is only tracked after all constellation Star Trials are completed.

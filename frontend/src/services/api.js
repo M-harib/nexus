@@ -247,6 +247,29 @@ export const generateCustomTree = async (topic, difficulty = 'medium', maxNodes 
   }
 };
 
+export const evaluateStarGauntletAnswer = async ({
+  nodeId,
+  nodeData = null,
+  prompt,
+  answer,
+  type = 'critical'
+}) => {
+  const response = await fetch(apiUrl('/api/star-gauntlet/evaluate'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      nodeId,
+      node: nodeData,
+      prompt,
+      answer,
+      type
+    }),
+  });
+  return handleResponse(response);
+};
+
 // Transcribe audio via ElevenLabs (voice route)
 export const transcribeAudio = async (audioBlob, filename = 'recording.webm') => {
   const formData = new FormData();

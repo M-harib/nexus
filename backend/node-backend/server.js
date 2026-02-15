@@ -721,6 +721,130 @@ app.post('/api/star-trial/questions', async (req, res) => {
   }
 });
 
+app.post('/api/star-gauntlet/evaluate', async (req, res) => {
+  const {
+    nodeId,
+    node: providedNode,
+    prompt,
+    answer,
+    type = 'critical'
+  } = req.body || {};
+
+  let node = providedNode;
+  if (!node && nodeId) {
+    node = knowledgeGraph.nodes.find((n) => n.id === nodeId);
+  }
+
+  if (!node) {
+    return res.status(404).json({
+      success: false,
+      message: 'Node not found'
+    });
+  }
+
+  const normalizedStatus = typeof node.status === 'number'
+    ? (node.status > 0 ? 'mastered' : node.status === 0 ? 'active' : 'locked')
+    : node.status;
+  if (normalizedStatus === 'locked') {
+    return res.status(400).json({
+      success: false,
+      message: 'Node is locked. Complete prerequisites first.'
+    });
+  }
+
+  const safePrompt = safeString(prompt);
+  const safeAnswer = safeString(answer);
+  if (!safePrompt) {
+    return res.status(400).json({
+      success: false,
+      message: 'prompt is required'
+    });
+  }
+  if (safeAnswer.length < 8) {
+    return res.status(400).json({
+      success: false,
+      message: 'answer must be at least 8 characters'
+    });
+  }
+
+  const fallbackEvaluate = () => {
+    const words = safeAnswer.split(/\s+/).filter(Boolean).length;
+    let score = 52;
+    if (words >= 28) score = 92;
+    else if (words >= 18) score = 82;
+    else if (words >= 12) score = 72;
+    else if (words >= 8) score = 64;
+    const passed = score >= 70;
+    return {
+      success: true,
+      score,
+      passed,
+      feedback: passed
+        ? 'Reasoning is solid. Add one more concrete example to make it stronger.'
+        : 'Add clearer reasoning and one concrete example tied to the prompt.',
+      usingFallback: true
+    };
+  };
+
+  if (!model) {
+    initializeGeminiClient();
+  }
+  if (!model) {
+    return res.json(fallbackEvaluate());
+  }
+
+  const promptText = `You are grading one Star Gauntlet response.
+
+Topic: "${safeString(node.label).replace(/\n/g, ' ')}"
+Description: "${safeString(node.description)}"
+Question Type: "${safeString(type)}"
+Prompt:
+"${safePrompt}"
+
+Student Answer:
+"${safeAnswer}"
+
+Grade semantically; do not require exact wording.
+Return ONLY JSON:
+{
+  "score": 0-100,
+  "passed": true/false,
+  "feedback": "one short paragraph"
+}
+
+Pass threshold: score >= 70.`;
+
+  try {
+    const result = await generateWithGeminiFailover(promptText);
+    const response = await result.response;
+    let text = response.text();
+    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return res.json(fallbackEvaluate());
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    const score = Number(parsed?.score);
+    const passed = typeof parsed?.passed === 'boolean' ? parsed.passed : (score >= 70);
+    if (!Number.isFinite(score)) {
+      return res.json(fallbackEvaluate());
+    }
+
+    return res.json({
+      success: true,
+      score: Math.max(0, Math.min(100, Math.round(score))),
+      passed: Boolean(passed),
+      feedback: safeString(parsed?.feedback) || 'Evaluated with Gemini.'
+    });
+  } catch (error) {
+    return res.json({
+      ...fallbackEvaluate(),
+      reason: error.message || 'Gemini error'
+    });
+  }
+});
+
 // Verify explanation with Gemini AI
 app.post('/api/verify', async (req, res) => {
   const {
