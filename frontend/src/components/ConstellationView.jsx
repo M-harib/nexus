@@ -456,6 +456,7 @@ export default function ConstellationView({
   const [animatingEdges, setAnimatingEdges] = useState([]);
   const graphContainerRef = useRef(null);
   const [cursorPoint, setCursorPoint] = useState(null);
+  const [toast, setToast] = useState(null); // { type: 'success'|'error'|'info', title, lines[] }
   
   // Resolve graph from props or backend
   useEffect(() => {
@@ -602,17 +603,36 @@ export default function ConstellationView({
             : `${deltaPercent >= 0 ? '+' : ''}${deltaPercent}% vs previous best`;
           const bestChangeLine = previousBest === null || previousBest === undefined
             ? `Best Score: ${currentBest}/100`
-            : `Best Score: ${previousBest}/100 -> ${currentBest}/100`;
-          alert(`Practice result:\nAttempt Score: ${verifyResult.score}/100\n${bestChangeLine}\nChange: ${deltaDisplay}`);
+            : `Best Score: ${previousBest}/100 → ${currentBest}/100`;
+          setToast({
+            type: 'success',
+            title: '🏆 Boss Defeated!',
+            lines: [
+              `Attempt Score: ${verifyResult.score}/100`,
+              bestChangeLine,
+              `Change: ${deltaDisplay}`
+            ]
+          });
         }
       } else {
         // Show feedback to user
-        console.log('Verification failed:', verifyResult.message);
-        alert(`${verifyResult.message}\n\nScore: ${verifyResult.score}/100\n\nFeedback: ${verifyResult.feedback}`);
+        console.log('❌ Verification failed:', verifyResult.message);
+        setToast({
+          type: 'error',
+          title: '❌ Not Quite There',
+          lines: [
+            `Score: ${verifyResult.score}/100`,
+            verifyResult.feedback || verifyResult.message
+          ]
+        });
       }
     } catch (err) {
       console.error('Error completing boss fight:', err);
-      alert('Failed to verify explanation. Please try again.');
+      setToast({
+        type: 'error',
+        title: '⚠️ Error',
+        lines: ['Failed to verify explanation. Please try again.']
+      });
     }
   };
 
@@ -943,6 +963,58 @@ export default function ConstellationView({
           Warning: {error} - Backend not connected
         </motion.div>
       )}
+
+      {/* Toast notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+            style={{
+              position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)',
+              zIndex: 2000, minWidth: '320px', maxWidth: '460px',
+              background: toast.type === 'success'
+                ? 'linear-gradient(135deg, rgba(0,180,80,0.92), rgba(0,120,60,0.92))'
+                : toast.type === 'error'
+                  ? 'linear-gradient(135deg, rgba(200,40,40,0.92), rgba(140,20,20,0.92))'
+                  : 'linear-gradient(135deg, rgba(60,60,120,0.92), rgba(40,40,80,0.92))',
+              border: `1px solid ${toast.type === 'success' ? 'rgba(0,255,136,0.4)' : toast.type === 'error' ? 'rgba(255,100,100,0.4)' : 'rgba(138,43,226,0.4)'}`,
+              borderRadius: '14px', padding: '18px 22px',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)',
+              color: 'white', fontFamily: 'monospace'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>{toast.title}</div>
+              <button
+                onClick={() => setToast(null)}
+                style={{
+                  background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white',
+                  borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer',
+                  fontSize: '14px', lineHeight: '24px', textAlign: 'center', flexShrink: 0
+                }}
+              >×</button>
+            </div>
+            {toast.lines && toast.lines.map((line, i) => (
+              <div key={i} style={{ fontSize: '13px', opacity: 0.9, marginTop: '4px', lineHeight: 1.4 }}>{line}</div>
+            ))}
+            {/* auto-dismiss after 5s */}
+            <motion.div
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              transition={{ duration: 5, ease: 'linear' }}
+              onAnimationComplete={() => setToast(null)}
+              style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px',
+                background: 'rgba(255,255,255,0.3)', borderRadius: '0 0 14px 14px',
+                transformOrigin: 'left'
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
