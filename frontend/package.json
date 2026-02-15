@@ -10,10 +10,14 @@
   "dependencies": {
     "@babel/code-frame": "^7.29.0",
     "framer-motion": "^12.34.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "react-force-graph-3d": "^1.24.4",
     "three": "^0.160.0"
+  },
+  "resolutions": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",

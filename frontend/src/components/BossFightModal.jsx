@@ -21,12 +21,17 @@ const BossFightModal = ({ node, onClose, onComplete }) => {
       return;
     }
 
+    console.log('🎯 FRONTEND: Submitting explanation');
+    console.log('  Node ID:', node.id);
+    console.log('  Explanation length:', userExplanation.length);
+    console.log('  Explanation:', userExplanation);
+
     setStage('checking');
     setError(null);
 
     try {
       // Call backend API to verify the explanation
-      const result = await verifyExplanation(node.id, userExplanation);
+      const result = await verifyExplanation(node.id, userExplanation, null, node);
       
       setVerificationResult(result);
       setFeedback(result.feedback || result.message);
@@ -87,7 +92,10 @@ const BossFightModal = ({ node, onClose, onComplete }) => {
             <textarea
               className="explanation-input"
               value={userExplanation}
-              onChange={(e) => setUserExplanation(e.target.value)}
+              onChange={(e) => {
+                console.log('📝 Textarea changed:', e.target.value.length, 'chars');
+                setUserExplanation(e.target.value);
+              }}
               placeholder="Type your explanation here... (minimum 20 words recommended)"
               rows="6"
               style={{
