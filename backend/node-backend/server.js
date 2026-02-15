@@ -627,7 +627,7 @@ Create a JSON object with this structure:
 }
 
 Requirements:
-- Generate 8-12 nodes
+- Generate 12-20 nodes
 - First node only: status "active" (current node to work on)
 - All other nodes: status "locked" (not yet accessible)
 - Use levels 1-6 to show progression (beginner to advanced)
@@ -721,21 +721,46 @@ function generateGenericTree(topic) {
   const tree = {
     nodes: [
       { id: 'basics', label: `${capitalizedTopic}\nBasics`, status: 'active', level: 1, description: 'Fundamental concepts and introduction' },
+      { id: 'terminology', label: 'Key\nTerminology', status: 'locked', level: 1, description: 'Essential vocabulary and definitions' },
       { id: 'fundamentals', label: 'Core\nFundamentals', status: 'locked', level: 2, description: 'Essential principles and practices' },
-      { id: 'intermediate', label: 'Intermediate\nConcepts', status: 'locked', level: 3, description: 'Building on the foundations' },
+      { id: 'concepts-1', label: 'Core\nConcepts I', status: 'locked', level: 2, description: 'First set of core ideas' },
+      { id: 'concepts-2', label: 'Core\nConcepts II', status: 'locked', level: 2, description: 'Second set of core ideas' },
+      { id: 'intermediate-1', label: 'Intermediate\nTopics I', status: 'locked', level: 3, description: 'Building on the foundations' },
+      { id: 'intermediate-2', label: 'Intermediate\nTopics II', status: 'locked', level: 3, description: 'Expanding knowledge' },
+      { id: 'intermediate-3', label: 'Intermediate\nTopics III', status: 'locked', level: 3, description: 'Advanced fundamentals' },
       { id: 'advanced-1', label: 'Advanced\nTopics I', status: 'locked', level: 4, description: 'Deep dive into complex areas' },
       { id: 'advanced-2', label: 'Advanced\nTopics II', status: 'locked', level: 4, description: 'Specialized knowledge' },
-      { id: 'practical', label: 'Practical\nApplications', status: 'locked', level: 5, description: 'Real-world projects and use cases' },
-      { id: 'mastery', label: 'Mastery &\nBest Practices', status: 'locked', level: 6, description: 'Expert-level skills' },
+      { id: 'advanced-3', label: 'Advanced\nTopics III', status: 'locked', level: 4, description: 'Expert techniques' },
+      { id: 'practical-1', label: 'Practical\nApplications I', status: 'locked', level: 5, description: 'Real-world projects' },
+      { id: 'practical-2', label: 'Practical\nApplications II', status: 'locked', level: 5, description: 'Use cases and examples' },
+      { id: 'integration', label: 'System\nIntegration', status: 'locked', level: 5, description: 'Combining concepts together' },
+      { id: 'optimization', label: 'Performance &\nOptimization', status: 'locked', level: 6, description: 'Efficiency and best practices' },
+      { id: 'mastery', label: 'Mastery &\nExpertise', status: 'locked', level: 6, description: 'Expert-level skills' },
     ],
     links: [
+      { source: 'basics', target: 'terminology' },
       { source: 'basics', target: 'fundamentals' },
-      { source: 'fundamentals', target: 'intermediate' },
-      { source: 'intermediate', target: 'advanced-1' },
-      { source: 'intermediate', target: 'advanced-2' },
-      { source: 'advanced-1', target: 'practical' },
-      { source: 'advanced-2', target: 'practical' },
-      { source: 'practical', target: 'mastery' },
+      { source: 'terminology', target: 'concepts-1' },
+      { source: 'fundamentals', target: 'concepts-1' },
+      { source: 'fundamentals', target: 'concepts-2' },
+      { source: 'concepts-1', target: 'intermediate-1' },
+      { source: 'concepts-2', target: 'intermediate-2' },
+      { source: 'concepts-1', target: 'intermediate-2' },
+      { source: 'concepts-2', target: 'intermediate-3' },
+      { source: 'intermediate-1', target: 'advanced-1' },
+      { source: 'intermediate-2', target: 'advanced-1' },
+      { source: 'intermediate-2', target: 'advanced-2' },
+      { source: 'intermediate-3', target: 'advanced-2' },
+      { source: 'intermediate-3', target: 'advanced-3' },
+      { source: 'advanced-1', target: 'practical-1' },
+      { source: 'advanced-2', target: 'practical-1' },
+      { source: 'advanced-2', target: 'practical-2' },
+      { source: 'advanced-3', target: 'practical-2' },
+      { source: 'practical-1', target: 'integration' },
+      { source: 'practical-2', target: 'integration' },
+      { source: 'integration', target: 'optimization' },
+      { source: 'optimization', target: 'mastery' },
+      { source: 'practical-2', target: 'mastery' },
     ]
   };
   
