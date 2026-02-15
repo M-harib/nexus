@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { knowledgeGraphData } from '../data/knowledgeGraph';
+import FIXED_STARS from '../data/stars';
 import { fetchKnowledgeGraph, completeNode, verifyExplanation, generateCustomTree } from '../services/api';
 import BossFightModal from './BossFightModal';
 import ConstellationLoader from './ConstellationLoader';
@@ -24,20 +25,68 @@ const getNodeBestScore = (node) => {
 const getNodeStyleByStatus = (status) => {
   switch (status) {
     case 'mastered':
-      return { opacity: 1, size: 50, pulseSize: 2, shadow: '0 0 30px rgba(255,255,255,1)', rotate: true };
+      return { opacity: 1, size: 68, pulseSize: 2.2, shadow: '0 0 34px rgba(255,255,255,1)', rotate: true };
     case 'active':
-      return { opacity: 0.8, size: 45, pulseSize: 1.8, shadow: '0 0 20px rgba(255,255,255,0.8)', rotate: true };
+      return { opacity: 0.86, size: 60, pulseSize: 2, shadow: '0 0 26px rgba(255,255,255,0.82)', rotate: true };
     case 'locked':
     default:
-      return { opacity: 0.3, size: 35, pulseSize: 0, shadow: '0 0 10px rgba(255,255,255,0.3)', rotate: false };
+      return { opacity: 0.42, size: 50, pulseSize: 1.2, shadow: '0 0 14px rgba(255,255,255,0.42)', rotate: true };
   }
 };
+
+const hashString = (value) => {
+  let hash = 0;
+  const str = String(value || '');
+  for (let i = 0; i < str.length; i += 1) {
+    hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+};
+
+const getNodeMotionProfile = (nodeId) => {
+  const hash = hashString(nodeId);
+  const dir = hash % 2 === 0 ? 1 : -1;
+  const swing = 8 + (hash % 13); // 8..20 degrees
+  const rotationDuration = 7 + (hash % 6); // 7..12 sec
+  const shimmerDuration = 2.6 + ((hash >>> 3) % 22) / 10; // 2.6..4.7 sec
+  const shimmerDelay = ((hash >>> 5) % 14) / 10; // 0..1.3 sec
+  return { dir, swing, rotationDuration, shimmerDuration, shimmerDelay };
+};
+
+const isHexColor = (value) => /^#[0-9a-fA-F]{6}$/.test(String(value || '').trim());
+
+const withAlpha = (hex, alpha = 1) => {
+  const safeHex = isHexColor(hex) ? hex : '#ffffff';
+  const n = safeHex.replace('#', '');
+  const r = parseInt(n.slice(0, 2), 16);
+  const g = parseInt(n.slice(2, 4), 16);
+  const b = parseInt(n.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+const hexToRgbString = (hex) => {
+  const safeHex = isHexColor(hex) ? hex : '#ffffff';
+  const n = safeHex.replace('#', '');
+  const r = parseInt(n.slice(0, 2), 16);
+  const g = parseInt(n.slice(2, 4), 16);
+  const b = parseInt(n.slice(4, 6), 16);
+  return `${r}, ${g}, ${b}`;
+};
+
+const getStatusHighlightColor = (status) => {
+  if (status === 'mastered') return '#3b82f6';
+  if (status === 'active') return '#22c55e';
+  return null;
+};
 // Constellation-style node positioning
-function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = false }) {
+function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = false, nodeColor = '#ffffff' }) {
   const normalizedStatus = normalizeNodeStatus(node);
   const nodeStyle = getNodeStyleByStatus(normalizedStatus);
-  const baseColor = '#ffffff';
+  const baseColor = isHexColor(nodeColor) ? nodeColor : '#ffffff';
+  const shimmerHighlight = getStatusHighlightColor(normalizedStatus);
+  const glowColor = shimmerHighlight || baseColor;
   const size = nodeStyle.size;
+  const motionProfile = useMemo(() => getNodeMotionProfile(node.id), [node.id]);
 
   return (
     <motion.div
@@ -75,17 +124,15 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
         type: 'spring',
         stiffness: 100
       }}
-      whileHover={{ scale: 1.4, transition: { duration: 0.3 } }}
+      whileHover={{ scale: 1.32, transition: { duration: 0.3 } }}
       onClick={() => onClick(node)}
     >
-      {/* Center anchor wrapper so link coordinates land at node center */}
       <div
         style={{
           position: 'relative',
           transform: 'translate(-50%, -50%)'
         }}
       >
-        {/* Diamond/Hexagon shape instead of circle */}
         <motion.div
           style={{
             position: 'relative',
@@ -93,281 +140,175 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
             height: `${size}px`
           }}
           animate={nodeStyle.rotate ? {
-            rotate: [0, 360]
+            rotate: [
+              0,
+              motionProfile.dir * motionProfile.swing,
+              0,
+              motionProfile.dir * -motionProfile.swing,
+              0
+            ]
           } : {}}
           transition={{
-            rotate: { duration: 20, repeat: Infinity, ease: 'linear' }
+            rotate: {
+              duration: motionProfile.rotationDuration,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }
           }}
         >
-        {/* Star burst shape with 8 rays - shortened */}
-        <svg width={size} height={size} viewBox="0 0 100 100" style={{ filter: `drop-shadow(${nodeStyle.shadow})` }}>
-          {/* Main rays - 4 primary directions */}
-          <motion.line
-            x1="50" y1="50" x2="50" y2="20"
-            stroke={baseColor}
-            strokeWidth="3"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.6, nodeStyle.opacity, nodeStyle.opacity * 0.6]
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 100 100"
+            style={{
+              filter: `drop-shadow(0 0 12px ${withAlpha(glowColor, 0.85)}) drop-shadow(${nodeStyle.shadow})`
             }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="80" y2="50"
-            stroke={baseColor}
-            strokeWidth="3"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.6, nodeStyle.opacity, nodeStyle.opacity * 0.6]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.25
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="50" y2="80"
-            stroke={baseColor}
-            strokeWidth="3"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.6, nodeStyle.opacity, nodeStyle.opacity * 0.6]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.5
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="20" y2="50"
-            stroke={baseColor}
-            strokeWidth="3"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.6, nodeStyle.opacity, nodeStyle.opacity * 0.6]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.75
-            }}
-          />
-          
-          {/* Secondary rays - diagonal directions */}
-          <motion.line
-            x1="50" y1="50" x2="71" y2="29"
-            stroke={baseColor}
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity * 0.7}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.4, nodeStyle.opacity * 0.7, nodeStyle.opacity * 0.4]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.1
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="71" y2="71"
-            stroke={baseColor}
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity * 0.7}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.4, nodeStyle.opacity * 0.7, nodeStyle.opacity * 0.4]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.35
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="29" y2="71"
-            stroke={baseColor}
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity * 0.7}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.4, nodeStyle.opacity * 0.7, nodeStyle.opacity * 0.4]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.6
-            }}
-          />
-          <motion.line
-            x1="50" y1="50" x2="29" y2="29"
-            stroke={baseColor}
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity={nodeStyle.opacity * 0.7}
-            animate={{
-              opacity: [nodeStyle.opacity * 0.4, nodeStyle.opacity * 0.7, nodeStyle.opacity * 0.4]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.85
-            }}
-          />
-          
-          {/* Bright center core */}
-          <motion.circle
-            cx="50"
-            cy="50"
-            r="8"
-            fill={baseColor}
-            opacity={nodeStyle.opacity}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [nodeStyle.opacity * 0.9, nodeStyle.opacity, nodeStyle.opacity * 0.9]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-          />
-        </svg>
-        
-        {/* Unlock burst effect */}
-        {isUnlocking && (
-          <>
-            {/* Expanding rings */}
-            <motion.svg
-              width={size * 3}
-              height={size * 3}
-              viewBox="0 0 100 100"
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                pointerEvents: 'none'
+          >
+            <motion.path
+              d="M50 6 L58 42 L94 50 L58 58 L50 94 L42 58 L6 50 L42 42 Z"
+              fill={baseColor}
+              opacity={nodeStyle.opacity}
+              animate={{
+                scale: [1, 1.06, 0.98, 1],
+                opacity: [nodeStyle.opacity * 0.74, nodeStyle.opacity, nodeStyle.opacity * 0.78]
               }}
-            >
-              <defs>
-                <filter id="unlock-glow">
-                  <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
-              </defs>
-              <motion.circle
-                cx="50"
-                cy="50"
-                r="20"
-                fill="none"
-                stroke="#60a5fa"
-                strokeWidth="2"
-                opacity={0.8}
-                filter="url(#unlock-glow)"
+              transition={{
+                duration: motionProfile.shimmerDuration,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: motionProfile.shimmerDelay
+              }}
+            />
+            <motion.path
+              d="M50 24 L54 46 L76 50 L54 54 L50 76 L46 54 L24 50 L46 46 Z"
+              fill={baseColor}
+              opacity={nodeStyle.opacity * 0.86}
+              animate={{
+                opacity: [nodeStyle.opacity * 0.56, nodeStyle.opacity * 0.92, nodeStyle.opacity * 0.56]
+              }}
+              transition={{
+                duration: motionProfile.shimmerDuration * 0.9,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: motionProfile.shimmerDelay * 0.6
+              }}
+            />
+            {shimmerHighlight && (
+              <motion.path
+                d="M50 6 L58 42 L94 50 L58 58 L50 94 L42 58 L6 50 L42 42 Z"
+                fill={shimmerHighlight}
+                opacity={0.2}
                 animate={{
-                  r: [20, 35, 50],
-                  opacity: [0.8, 0.4, 0]
+                  opacity: [0.08, 0.45, 0.12, 0.38, 0.08]
                 }}
                 transition={{
-                  duration: 1.2,
-                  ease: 'easeOut'
+                  duration: motionProfile.shimmerDuration * 0.9,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: motionProfile.shimmerDelay * 0.5
                 }}
               />
-              <motion.circle
-                cx="50"
-                cy="50"
-                r="25"
-                fill="none"
-                stroke="#a78bfa"
-                strokeWidth="1.5"
-                opacity={0.6}
-                filter="url(#unlock-glow)"
-                animate={{
-                  r: [25, 40, 55],
-                  opacity: [0.6, 0.2, 0]
-                }}
-                transition={{
-                  duration: 1.3,
-                  ease: 'easeOut',
-                  delay: 0.1
-                }}
-              />
-            </motion.svg>
-            
-            {/* Sparkle particles */}
-            <svg
-              width={size * 4}
-              height={size * 4}
-              viewBox="0 0 100 100"
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                pointerEvents: 'none'
+            )}
+            <motion.circle
+              cx="50"
+              cy="50"
+              r="6"
+              fill={baseColor}
+              opacity={nodeStyle.opacity * 0.95}
+              animate={{
+                scale: [1, 1.22, 0.92, 1],
+                opacity: [nodeStyle.opacity * 0.72, nodeStyle.opacity, nodeStyle.opacity * 0.72]
               }}
-            >
-              {[0, 45, 90, 135, 180, 225, 270, 315].map(angle => (
+              transition={{
+                duration: motionProfile.shimmerDuration,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: motionProfile.shimmerDelay
+              }}
+            />
+          </svg>
+
+          {isUnlocking && (
+            <>
+              <motion.svg
+                width={size * 3}
+                height={size * 3}
+                viewBox="0 0 100 100"
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  pointerEvents: 'none'
+                }}
+              >
+                <defs>
+                  <filter id="unlock-glow">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
                 <motion.circle
-                  key={angle}
                   cx="50"
                   cy="50"
-                  r="2"
-                  fill="#60a5fa"
+                  r="20"
+                  fill="none"
+                  stroke="#60a5fa"
+                  strokeWidth="2"
+                  opacity={0.8}
+                  filter="url(#unlock-glow)"
                   animate={{
-                    cx: 50 + Math.cos(angle * Math.PI / 180) * 30,
-                    cy: 50 + Math.sin(angle * Math.PI / 180) * 30,
-                    opacity: [1, 0]
+                    r: [20, 35, 50],
+                    opacity: [0.8, 0.4, 0]
                   }}
                   transition={{
                     duration: 1.2,
                     ease: 'easeOut'
                   }}
                 />
-              ))}
-            </svg>
-          </>
-        )}
+                <motion.circle
+                  cx="50"
+                  cy="50"
+                  r="25"
+                  fill="none"
+                  stroke="#a78bfa"
+                  strokeWidth="1.5"
+                  opacity={0.6}
+                  filter="url(#unlock-glow)"
+                  animate={{
+                    r: [25, 40, 55],
+                    opacity: [0.6, 0.2, 0]
+                  }}
+                  transition={{
+                    duration: 1.3,
+                    ease: 'easeOut',
+                    delay: 0.1
+                  }}
+                />
+              </motion.svg>
+            </>
+          )}
         </motion.div>
 
-        {/* Label with smooth fade */}
         <motion.div
           className="absolute whitespace-nowrap font-mono text-sm font-medium"
           style={{
-            left: `${size + 15}px`,
+            left: `${size + 18}px`,
             top: '50%',
             transform: 'translateY(-50%)',
             color: baseColor,
-            textShadow: `0 0 ${15 * nodeStyle.opacity}px rgba(255, 255, 255, ${nodeStyle.opacity * 0.8}), 0 2px 4px rgba(0,0,0,0.5)`,
+            textShadow: `0 0 ${15 * nodeStyle.opacity}px ${withAlpha(baseColor, nodeStyle.opacity * 0.8)}, 0 2px 4px rgba(0,0,0,0.5)`,
             pointerEvents: 'none'
           }}
           initial={{ opacity: 0, x: -20 }}
-          animate={{ 
-            opacity: nodeStyle.opacity * 0.95, 
-            x: 0 
+          animate={{
+            opacity: nodeStyle.opacity * 0.95,
+            x: 0
           }}
-          transition={{ 
+          transition={{
             delay: node.level * 0.15 + 0.4,
             duration: 0.8,
             type: 'spring'
@@ -376,15 +317,14 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
           {node.label.replace('\n', ' ')}
         </motion.div>
 
-        {/* Statistics display */}
         <motion.div
           className="absolute whitespace-nowrap font-mono text-xs"
           style={{
-            left: `${size + 15}px`,
+            left: `${size + 18}px`,
             top: 'calc(50% + 20px)',
             color: normalizedStatus === 'mastered' ? '#60a5fa' : normalizedStatus === 'active' ? '#99ff00' : '#888888',
             opacity: nodeStyle.opacity * 0.8,
-            textShadow: `0 0 8px rgba(255, 255, 255, ${nodeStyle.opacity * 0.4})`,
+            textShadow: `0 0 8px ${withAlpha(baseColor, nodeStyle.opacity * 0.45)}`,
             pointerEvents: 'none',
             fontSize: '10px'
           }}
@@ -400,7 +340,8 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
 }
 
 // Connection lines between nodes with flowing energy
-function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [] }) {
+function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [], nodeColor = '#ffffff' }) {
+  const baseColor = isHexColor(nodeColor) ? nodeColor : '#ffffff';
   return (
     <svg
       className="absolute inset-0 pointer-events-none"
@@ -446,15 +387,15 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [] }
         // Check if this edge is animating
         const isAnimating = animatingEdges.includes(i);
         
-        // Subtle link styling - much less obvious
-        let strokeOpacity = 0.08;
-        let strokeWidth = 0.5;
-        let strokeColor = '#ffffff';
+        // Base edge styling
+        let strokeOpacity = 0.32;
+        let strokeWidth = 5.2;
+        let strokeColor = withAlpha(baseColor, 0.55);
         
         const sourceStatus = sourceNode ? normalizeNodeStatus(sourceNode) : 'locked';
         if (sourceStatus === 'mastered' || sourceStatus === 'active') {
-          strokeOpacity = sourceStatus === 'mastered' ? 0.25 : 0.15;
-          strokeWidth = sourceStatus === 'mastered' ? 1 : 0.7;
+          strokeOpacity = sourceStatus === 'mastered' ? 0.52 : 0.4;
+          strokeWidth = sourceStatus === 'mastered' ? 2.3 : 1.9;
         }
 
         // Neural animation for newly unlocked edges
@@ -519,6 +460,9 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [] }
           );
         }
 
+        const breatheDuration = 2.6 + (i % 6) * 0.28;
+        const breatheDelay = (i % 9) * 0.1;
+
         return (
           <motion.line
             key={i}
@@ -528,12 +472,13 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [] }
             y2={`${targetPos.y}%`}
             stroke={strokeColor}
             strokeWidth={strokeWidth}
+            filter="url(#constellation-glow)"
             initial={{ opacity: 0 }}
-            animate={{ 
-              opacity: strokeOpacity
+            animate={{
+              opacity: [strokeOpacity * 0.8, strokeOpacity, strokeOpacity * 0.6]
             }}
-            transition={{ 
-              opacity: { duration: 0.5, delay: i * 0.03 }
+            transition={{
+              opacity: { duration: breatheDuration, delay: breatheDelay, repeat: Infinity, ease: 'easeInOut' }
             }}
           />
         );
@@ -555,7 +500,10 @@ export default function ConstellationView({
   graphData: initialGraphData = null,
   query = '',
   hideSideHud = false,
-  onTopicResolved
+  onTopicResolved,
+  nodeColor = '#ffffff',
+  backgroundStarsEnabled = true,
+  starColor = '#ffffff'
 }) {
   const [selectedNode, setSelectedNode] = useState(null);
   const [graphData, setGraphData] = useState(knowledgeGraphData); // Start with local data as fallback
@@ -568,6 +516,13 @@ export default function ConstellationView({
   const [animatingEdges, setAnimatingEdges] = useState([]);
   const graphContainerRef = useRef(null);
   const [cursorPoint, setCursorPoint] = useState(null);
+  const constellationBgStars = useMemo(
+    () => FIXED_STARS.filter((star, idx) => idx % 2 === 0),
+    []
+  );
+  const constellationStarColor = isHexColor(starColor) ? starColor : '#ffffff';
+  const constellationStarRgb = hexToRgbString(constellationStarColor);
+  const [toast, setToast] = useState(null); // { type: 'success'|'error'|'info', title, lines[] }
   
   // Resolve graph from props or backend
   useEffect(() => {
@@ -714,17 +669,36 @@ export default function ConstellationView({
             : `${deltaPercent >= 0 ? '+' : ''}${deltaPercent}% vs previous best`;
           const bestChangeLine = previousBest === null || previousBest === undefined
             ? `Best Score: ${currentBest}/100`
-            : `Best Score: ${previousBest}/100 -> ${currentBest}/100`;
-          alert(`Practice result:\nAttempt Score: ${verifyResult.score}/100\n${bestChangeLine}\nChange: ${deltaDisplay}`);
+            : `Best Score: ${previousBest}/100 → ${currentBest}/100`;
+          setToast({
+            type: 'success',
+            title: '🏆 Boss Defeated!',
+            lines: [
+              `Attempt Score: ${verifyResult.score}/100`,
+              bestChangeLine,
+              `Change: ${deltaDisplay}`
+            ]
+          });
         }
       } else {
         // Show feedback to user
-        console.log('Verification failed:', verifyResult.message);
-        alert(`${verifyResult.message}\n\nScore: ${verifyResult.score}/100\n\nFeedback: ${verifyResult.feedback}`);
+        console.log('❌ Verification failed:', verifyResult.message);
+        setToast({
+          type: 'error',
+          title: '❌ Not Quite There',
+          lines: [
+            `Score: ${verifyResult.score}/100`,
+            verifyResult.feedback || verifyResult.message
+          ]
+        });
       }
     } catch (err) {
       console.error('Error completing boss fight:', err);
-      alert('Failed to verify explanation. Please try again.');
+      setToast({
+        type: 'error',
+        title: '⚠️ Error',
+        lines: ['Failed to verify explanation. Please try again.']
+      });
     }
   };
 
@@ -876,6 +850,31 @@ export default function ConstellationView({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
+      {backgroundStarsEnabled && (
+        <div
+          className="absolute inset-0 pointer-events-none z-0"
+          style={{
+            '--bg-star-color': constellationStarColor,
+            '--bg-star-rgb': constellationStarRgb
+          }}
+        >
+          {constellationBgStars.map((star, idx) => (
+            <div
+              key={`const-map-star-${star.id}`}
+              className="bg-twinkle-star"
+              style={{
+                left: `${star.x}%`,
+                top: `${star.y}%`,
+                width: `${star.size}px`,
+                height: `${star.size}px`,
+                animation: `star-twinkle-forever ${3.2 + (idx % 6) * 0.5}s ease-in-out infinite`,
+                animationDelay: `${(idx * 0.13) % 4.4}s`,
+                opacity: 0.42
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Topic Header (if generated from prompt) */}
       {!hideSideHud && generatedTopic && (
@@ -923,6 +922,7 @@ export default function ConstellationView({
             nodePositions={dynamicNodePositions}
             nodes={graphData.nodes}
             animatingEdges={animatingEdges}
+            nodeColor={nodeColor}
           />
           
           {/* Nodes */}
@@ -934,6 +934,7 @@ export default function ConstellationView({
               onClick={handleNodeClick}
               isSelected={selectedNode?.id === node.id}
               isUnlocking={unlockedNodes.includes(node.id)}
+              nodeColor={nodeColor}
             />
           ))}
         </div>
@@ -986,8 +987,15 @@ export default function ConstellationView({
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 30, scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="absolute bottom-8 right-8 z-50 bg-black/80 border border-white/30 rounded-xl p-6 max-w-sm backdrop-blur-md"
+            className="absolute z-50 bg-black/80 border border-white/30 rounded-xl p-6 backdrop-blur-md"
             style={{
+              top: 'auto',
+              left: 'auto',
+              right: '96px',
+              bottom: '32px',
+              maxWidth: 'min(24rem, calc(100vw - 32px))',
+              maxHeight: 'calc(100vh - 32px)',
+              overflowY: 'auto',
               fontFamily: 'monospace',
               boxShadow: '0 0 40px rgba(255, 255, 255, 0.2)'
             }}
@@ -1052,6 +1060,58 @@ export default function ConstellationView({
           Warning: {error} - Backend not connected
         </motion.div>
       )}
+
+      {/* Toast notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+            style={{
+              position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)',
+              zIndex: 2000, minWidth: '320px', maxWidth: '460px',
+              background: toast.type === 'success'
+                ? 'linear-gradient(135deg, rgba(0,180,80,0.92), rgba(0,120,60,0.92))'
+                : toast.type === 'error'
+                  ? 'linear-gradient(135deg, rgba(200,40,40,0.92), rgba(140,20,20,0.92))'
+                  : 'linear-gradient(135deg, rgba(60,60,120,0.92), rgba(40,40,80,0.92))',
+              border: `1px solid ${toast.type === 'success' ? 'rgba(0,255,136,0.4)' : toast.type === 'error' ? 'rgba(255,100,100,0.4)' : 'rgba(138,43,226,0.4)'}`,
+              borderRadius: '14px', padding: '18px 22px',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)',
+              color: 'white', fontFamily: 'monospace'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>{toast.title}</div>
+              <button
+                onClick={() => setToast(null)}
+                style={{
+                  background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white',
+                  borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer',
+                  fontSize: '14px', lineHeight: '24px', textAlign: 'center', flexShrink: 0
+                }}
+              >×</button>
+            </div>
+            {toast.lines && toast.lines.map((line, i) => (
+              <div key={i} style={{ fontSize: '13px', opacity: 0.9, marginTop: '4px', lineHeight: 1.4 }}>{line}</div>
+            ))}
+            {/* auto-dismiss after 5s */}
+            <motion.div
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              transition={{ duration: 5, ease: 'linear' }}
+              onAnimationComplete={() => setToast(null)}
+              style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px',
+                background: 'rgba(255,255,255,0.3)', borderRadius: '0 0 14px 14px',
+                transformOrigin: 'left'
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

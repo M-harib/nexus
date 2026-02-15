@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import Sidebar from './components/SideBar';
 import Header from './components/Header';
@@ -10,10 +10,22 @@ import TelescopeView from './components/TelescopeView';
 import ConstellationView from './components/ConstellationView';
 import PastConstellationsView from './components/PastConstellationsView';
 import ProfileView from './components/ProfileView';
+import SettingsView from './components/SettingsView';
 import { createPastConstellation } from './services/api';
 import { generateMainStarField } from './utils/starField';
 
 const MAIN_UI_FADE_MS = 900;
+const PAST_OPEN_GLINT_MS = 700;
+const PAST_OPEN_ZOOM_MS = 850;
+const PAST_OPEN_DISSOLVE_MS = 550;
+const APP_SETTINGS_KEY = 'ctrlhackdel_app_settings';
+const DEFAULT_APP_SETTINGS = {
+  disableStartingAnimation: false,
+  disableBackgroundElements: false,
+  userName: '',
+  starColor: '#ffffff',
+  nodeColor: '#ffffff'
+};
 
 const PAGE_CONTENT = {
   past: {
@@ -48,11 +60,52 @@ function parseGraphPayload(payload) {
   return null;
 }
 
+function buildSeededStars(seedKey, count = 18) {
+  const seedString = String(seedKey || 'constellation');
+  let seed = 0;
+  for (let i = 0; i < seedString.length; i += 1) {
+    seed = (seed * 31 + seedString.charCodeAt(i)) >>> 0;
+  }
+  const next = () => {
+    seed = (1664525 * seed + 1013904223) >>> 0;
+    return seed / 4294967295;
+  };
+
+  return Array.from({ length: count }).map((_, idx) => ({
+    id: `transition-star-${idx}`,
+    x: 7 + next() * 86,
+    y: 10 + next() * 80,
+    size: 1.8 + next() * 3.1,
+    delayMs: Math.round(next() * 640)
+  }));
+}
+
+function getStoredAppSettings() {
+  try {
+    const raw = localStorage.getItem(APP_SETTINGS_KEY);
+    if (!raw) return { ...DEFAULT_APP_SETTINGS };
+    const parsed = JSON.parse(raw);
+    return {
+      ...DEFAULT_APP_SETTINGS,
+      ...parsed
+    };
+  } catch {
+    return { ...DEFAULT_APP_SETTINGS };
+  }
+}
+
+function sanitizeHexColor(value, fallback = '#ffffff') {
+  const raw = String(value || '').trim();
+  return /^#[0-9a-fA-F]{6}$/.test(raw) ? raw.toLowerCase() : fallback;
+}
+
 function App() {
+  const initialSettingsRef = useRef(getStoredAppSettings());
+  const initialSettings = initialSettingsRef.current;
 
   const [isHovered, setIsHovered] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
-  const [mainVisible, setMainVisible] = useState(false);
+  const [showSplash, setShowSplash] = useState(!initialSettings.disableStartingAnimation);
+  const [mainVisible, setMainVisible] = useState(initialSettings.disableStartingAnimation);
   const [mainEntering, setMainEntering] = useState(false);
   const [mainEntrySequence, setMainEntrySequence] = useState(0);
   const [sharedStarField, setSharedStarField] = useState(() => generateMainStarField());
@@ -64,6 +117,22 @@ function App() {
   const [constellationData, setConstellationData] = useState(null);
   const [constellationTopic, setConstellationTopic] = useState('');
   const [activePage, setActivePage] = useState('create');
+  const [pastOpenTransition, setPastOpenTransition] = useState(null);
+  const pastOpenTimersRef = useRef([]);
+  const [appSettings, setAppSettings] = useState(initialSettings);
+
+  const [splashDone, setSplashDone] = useState(false);
+
+  const clearPastOpenTimers = () => {
+    pastOpenTimersRef.current.forEach((id) => clearTimeout(id));
+    pastOpenTimersRef.current = [];
+  };
+
+  useEffect(() => () => clearPastOpenTimers(), []);
+
+  useEffect(() => {
+    localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(appSettings));
+  }, [appSettings]);
 
   const handleSplashComplete = () => {
     setShowSplash(false);
@@ -132,6 +201,8 @@ function App() {
   };
 
   const handleMenuClick = (pageId) => {
+    clearPastOpenTimers();
+    setPastOpenTransition(null);
     setActivePage(pageId);
     setFadingOut(false);
     setTelescopeMode(false);
@@ -141,17 +212,74 @@ function App() {
     }
   };
 
-  const handleOpenPastConstellation = (item) => {
+  const handleOpenPastConstellation = (item, transitionMeta = {}) => {
     if (!item?.graph?.nodes || !item?.graph?.links) return;
-    setSearchQuery(item.query || '');
-    setConstellationTopic(item.title || item.query || 'Knowledge');
-    setConstellationData(item.graph);
-    setConstellationMode(true);
-    setConstellationReady(true);
-    setActivePage('create');
-    setFadingOut(false);
-    setTelescopeMode(false);
+    clearPastOpenTimers();
+
+    const shell = {
+      phase: 'glisten',
+      originRect: transitionMeta?.originRect || null,
+      stars: transitionMeta?.previewStars || buildSeededStars(item.id)
+    };
+    setPastOpenTransition(shell);
+
+    const toZoomMs = PAST_OPEN_GLINT_MS;
+    const toDissolveMs = PAST_OPEN_GLINT_MS + PAST_OPEN_ZOOM_MS;
+    const mountConstellationMs = toDissolveMs - 120;
+    const endTransitionMs = toDissolveMs + PAST_OPEN_DISSOLVE_MS;
+
+    pastOpenTimersRef.current.push(setTimeout(() => {
+      setPastOpenTransition((prev) => (prev ? { ...prev, phase: 'zoom' } : prev));
+    }, toZoomMs));
+
+    pastOpenTimersRef.current.push(setTimeout(() => {
+      setSearchQuery(item.query || '');
+      setConstellationTopic(item.title || item.query || 'Knowledge');
+      setConstellationData(item.graph);
+      setConstellationMode(true);
+      setConstellationReady(false);
+      setActivePage('create');
+      setFadingOut(false);
+      setTelescopeMode(false);
+    }, mountConstellationMs));
+
+    pastOpenTimersRef.current.push(setTimeout(() => {
+      setPastOpenTransition((prev) => (prev ? { ...prev, phase: 'dissolve' } : prev));
+    }, toDissolveMs));
+
+    pastOpenTimersRef.current.push(setTimeout(() => {
+      setConstellationReady(true);
+    }, toDissolveMs + 180));
+
+    pastOpenTimersRef.current.push(setTimeout(() => {
+      setPastOpenTransition(null);
+      clearPastOpenTimers();
+    }, endTransitionMs));
   };
+
+  const handleSettingsChange = (patch) => {
+    setAppSettings((prev) => {
+      const next = { ...prev, ...patch };
+      if (Object.prototype.hasOwnProperty.call(patch, 'userName')) {
+        next.userName = String(patch.userName || '').slice(0, 25);
+      }
+      if (Object.prototype.hasOwnProperty.call(patch, 'starColor')) {
+        next.starColor = sanitizeHexColor(patch.starColor, prev.starColor || DEFAULT_APP_SETTINGS.starColor);
+      }
+      if (Object.prototype.hasOwnProperty.call(patch, 'nodeColor')) {
+        next.nodeColor = sanitizeHexColor(patch.nodeColor, prev.nodeColor || DEFAULT_APP_SETTINGS.nodeColor);
+      }
+      if (patch.disableStartingAnimation) {
+        setShowSplash(false);
+        setMainVisible(true);
+      }
+      return next;
+    });
+  };
+
+  const greetingName = String(appSettings.userName || '').trim() || 'Explorer';
+  const starColor = sanitizeHexColor(appSettings.starColor, DEFAULT_APP_SETTINGS.starColor);
+  const nodeColor = sanitizeHexColor(appSettings.nodeColor, DEFAULT_APP_SETTINGS.nodeColor);
 
   const showConstellationView = constellationMode && constellationData && activePage === 'create';
   const showMainUI = !showConstellationView;
@@ -159,14 +287,17 @@ function App() {
   return (
     <div className="h-screen w-screen overflow-hidden relative bg-black text-gray-100">
       {/* Always-mounted StarryBackground — eliminates black flash between views */}
-      <StarryBackground
-        hideMeteors={showSplash}
-        enableGeminiStars={!showSplash && !showConstellationView && !telescopeMode}
-        panUpTransition={fadingOut || telescopeMode || showConstellationView}
-        showStars={!showSplash}
-        mainEntrySequence={mainEntrySequence}
-        initialStarField={sharedStarField}
-      />
+      {!appSettings.disableBackgroundElements && (
+        <StarryBackground
+          showStars={!showSplash}
+          mainEntrySequence={mainEntrySequence}
+          initialStarField={sharedStarField}
+          hideMeteors={showSplash}
+          enableGeminiStars={!showSplash && !showConstellationView && !telescopeMode}
+          panUpTransition={fadingOut || telescopeMode || showConstellationView}
+          starColor={starColor}
+        />
+      )}
 
       {/* Splash screen overlays on top */}
       {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
@@ -210,6 +341,9 @@ function App() {
               query={searchQuery}
               hideSideHud={true}
               onTopicResolved={setConstellationTopic}
+              nodeColor={nodeColor}
+              backgroundStarsEnabled={!appSettings.disableBackgroundElements}
+              starColor={starColor}
             />
           </div>
         </>
@@ -244,13 +378,15 @@ function App() {
               <div className="flex-1 p-4 flex flex-col justify-center items-center">
                 {activePage === 'create' ? (
                   <>
-                    <Greeting />
+                    <Greeting name={greetingName} />
                     <div className="w-[55vw]">
                       <TextBox onSubmit={handleTextSubmit} />
                     </div>
                   </>
                 ) : activePage === 'past' ? (
                   <PastConstellationsView onOpenConstellation={handleOpenPastConstellation} />
+                ) : activePage === 'settings' ? (
+                  <SettingsView settings={appSettings} onChange={handleSettingsChange} />
                 ) : activePage === 'profile' ? (
                   <ProfileView />
                 ) : (
@@ -260,6 +396,37 @@ function App() {
                   />
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pastOpenTransition && (
+        <div
+          className={`past-open-transition-overlay phase-${pastOpenTransition.phase}`}
+          style={{
+            '--past-origin-left': `${pastOpenTransition.originRect?.left ?? window.innerWidth * 0.2}px`,
+            '--past-origin-top': `${pastOpenTransition.originRect?.top ?? window.innerHeight * 0.2}px`,
+            '--past-origin-width': `${pastOpenTransition.originRect?.width ?? window.innerWidth * 0.6}px`,
+            '--past-origin-height': `${pastOpenTransition.originRect?.height ?? window.innerHeight * 0.42}px`
+          }}
+        >
+          <div className="past-open-transition-backdrop" />
+          <div className="past-open-zoom-shell">
+            <div className="past-open-star-layer">
+              {pastOpenTransition.stars.map((star) => (
+                <span
+                  key={star.id}
+                  className="past-open-star"
+                  style={{
+                    left: `${star.x}%`,
+                    top: `${star.y}%`,
+                    width: `${star.size}px`,
+                    height: `${star.size}px`,
+                    animationDelay: `${star.delayMs}ms`
+                  }}
+                />
+              ))}
             </div>
           </div>
         </div>

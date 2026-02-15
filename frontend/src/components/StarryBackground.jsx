@@ -78,9 +78,13 @@ function StarryBackground({
   hideMeteors = false,
   enableGeminiStars = false,
   panUpTransition = false,
+<<<<<<< HEAD
   showStars = true,
   mainEntrySequence = 0,
   initialStarField = null,
+=======
+  starColor = '#ffffff',
+>>>>>>> c34bbf9bf291b7d40484fe4f8382fd0fb0e107e8
 }) {
   const [mainStars, setMainStars] = useState([]);
   const [geminiStars, setGeminiStars] = useState([]);
@@ -264,9 +268,30 @@ function StarryBackground({
     };
   }, [showStars, enableGeminiStars, mainEntrySequence, initialStarField]);
 
+  const starColorRgb = (() => {
+    const hex = String(starColor || '').trim();
+    const normalized = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : '#ffffff';
+    const r = parseInt(normalized.slice(1, 3), 16);
+    const g = parseInt(normalized.slice(3, 5), 16);
+    const b = parseInt(normalized.slice(5, 7), 16);
+    return `${r}, ${g}, ${b}`;
+  })();
+
   return (
+<<<<<<< HEAD
     <div className={`starry-background ${panUpTransition ? 'pan-up-transition' : ''}`}>
       {showStars && mainStars.map((star) => (
+=======
+    <div
+      className={`starry-background ${panUpTransition ? 'pan-up-transition' : ''}`}
+      style={{
+        '--bg-star-color': starColor,
+        '--bg-star-rgb': starColorRgb
+      }}
+    >
+      {/* Stars always visible in twinkle mode */}
+      {visibleStars.map((star, i) => (
+>>>>>>> c34bbf9bf291b7d40484fe4f8382fd0fb0e107e8
         <div
           key={star.id}
           className={`${star.phase === 'landing' ? 'star-landing' : 'bg-twinkle-star'} ${star.hidden ? 'is-hidden' : ''}`}

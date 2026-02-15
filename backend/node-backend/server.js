@@ -6,6 +6,10 @@ const fs = require('fs/promises');
 const path = require('path');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+// Import route modules from src/
+const voiceRoutes = require('./src/routes/voiceRoutes');
+const treeRoutes = require('./src/routes/treeRoutes');
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 
@@ -623,10 +627,9 @@ Create a JSON object with this structure:
 }
 
 Requirements:
-- Generate 8-12 nodes
-- First node: status "mastered", level 1
-- Second node: status "active"
-- All other nodes: status "locked"
+- Generate 12-20 nodes
+- First node only: status "active" (current node to work on)
+- All other nodes: status "locked" (not yet accessible)
 - Use levels 1-6 to show progression (beginner to advanced)
 - Create logical links showing prerequisites
 - Keep labels clear and concise (no special characters)
@@ -678,19 +681,17 @@ Return ONLY valid JSON, no markdown code blocks.`;
     console.log('  - Nodes:', tree.nodes.length);
     console.log('  - Links:', tree.links.length);
     
-    // Ensure at least one mastered and one active node
+    // Ensure only the first node is active, all others locked
     console.log('\n🔧 Adjusting node statuses...');
-    if (!tree.nodes.some(n => n.status === 'mastered')) {
-      console.log('  - Setting first node to "mastered"');
-      tree.nodes[0].status = 'mastered';
-    }
-    if (!tree.nodes.some(n => n.status === 'active')) {
-      const firstLocked = tree.nodes.findIndex(n => n.status === 'locked');
-      if (firstLocked > -1) {
-        console.log(`  - Setting node ${firstLocked} to "active"`);
-        tree.nodes[firstLocked].status = 'active';
+    tree.nodes.forEach((node, index) => {
+      if (index === 0) {
+        console.log(`  - Setting first node "${node.label}" to "active"`);
+        tree.nodes[index].status = 'active';
+      } else {
+        console.log(`  - Setting node "${node.label}" to "locked"`);
+        tree.nodes[index].status = 'locked';
       }
-    }
+    });
     
     console.log('\n✅ AI generation complete!');
     console.log('Final tree preview:');
@@ -719,22 +720,47 @@ function generateGenericTree(topic) {
   
   const tree = {
     nodes: [
-      { id: 'basics', label: `${capitalizedTopic}\nBasics`, status: 'mastered', level: 1, description: 'Fundamental concepts and introduction' },
-      { id: 'fundamentals', label: 'Core\nFundamentals', status: 'active', level: 2, description: 'Essential principles and practices' },
-      { id: 'intermediate', label: 'Intermediate\nConcepts', status: 'locked', level: 3, description: 'Building on the foundations' },
+      { id: 'basics', label: `${capitalizedTopic}\nBasics`, status: 'active', level: 1, description: 'Fundamental concepts and introduction' },
+      { id: 'terminology', label: 'Key\nTerminology', status: 'locked', level: 1, description: 'Essential vocabulary and definitions' },
+      { id: 'fundamentals', label: 'Core\nFundamentals', status: 'locked', level: 2, description: 'Essential principles and practices' },
+      { id: 'concepts-1', label: 'Core\nConcepts I', status: 'locked', level: 2, description: 'First set of core ideas' },
+      { id: 'concepts-2', label: 'Core\nConcepts II', status: 'locked', level: 2, description: 'Second set of core ideas' },
+      { id: 'intermediate-1', label: 'Intermediate\nTopics I', status: 'locked', level: 3, description: 'Building on the foundations' },
+      { id: 'intermediate-2', label: 'Intermediate\nTopics II', status: 'locked', level: 3, description: 'Expanding knowledge' },
+      { id: 'intermediate-3', label: 'Intermediate\nTopics III', status: 'locked', level: 3, description: 'Advanced fundamentals' },
       { id: 'advanced-1', label: 'Advanced\nTopics I', status: 'locked', level: 4, description: 'Deep dive into complex areas' },
       { id: 'advanced-2', label: 'Advanced\nTopics II', status: 'locked', level: 4, description: 'Specialized knowledge' },
-      { id: 'practical', label: 'Practical\nApplications', status: 'locked', level: 5, description: 'Real-world projects and use cases' },
-      { id: 'mastery', label: 'Mastery &\nBest Practices', status: 'locked', level: 6, description: 'Expert-level skills' },
+      { id: 'advanced-3', label: 'Advanced\nTopics III', status: 'locked', level: 4, description: 'Expert techniques' },
+      { id: 'practical-1', label: 'Practical\nApplications I', status: 'locked', level: 5, description: 'Real-world projects' },
+      { id: 'practical-2', label: 'Practical\nApplications II', status: 'locked', level: 5, description: 'Use cases and examples' },
+      { id: 'integration', label: 'System\nIntegration', status: 'locked', level: 5, description: 'Combining concepts together' },
+      { id: 'optimization', label: 'Performance &\nOptimization', status: 'locked', level: 6, description: 'Efficiency and best practices' },
+      { id: 'mastery', label: 'Mastery &\nExpertise', status: 'locked', level: 6, description: 'Expert-level skills' },
     ],
     links: [
+      { source: 'basics', target: 'terminology' },
       { source: 'basics', target: 'fundamentals' },
-      { source: 'fundamentals', target: 'intermediate' },
-      { source: 'intermediate', target: 'advanced-1' },
-      { source: 'intermediate', target: 'advanced-2' },
-      { source: 'advanced-1', target: 'practical' },
-      { source: 'advanced-2', target: 'practical' },
-      { source: 'practical', target: 'mastery' },
+      { source: 'terminology', target: 'concepts-1' },
+      { source: 'fundamentals', target: 'concepts-1' },
+      { source: 'fundamentals', target: 'concepts-2' },
+      { source: 'concepts-1', target: 'intermediate-1' },
+      { source: 'concepts-2', target: 'intermediate-2' },
+      { source: 'concepts-1', target: 'intermediate-2' },
+      { source: 'concepts-2', target: 'intermediate-3' },
+      { source: 'intermediate-1', target: 'advanced-1' },
+      { source: 'intermediate-2', target: 'advanced-1' },
+      { source: 'intermediate-2', target: 'advanced-2' },
+      { source: 'intermediate-3', target: 'advanced-2' },
+      { source: 'intermediate-3', target: 'advanced-3' },
+      { source: 'advanced-1', target: 'practical-1' },
+      { source: 'advanced-2', target: 'practical-1' },
+      { source: 'advanced-2', target: 'practical-2' },
+      { source: 'advanced-3', target: 'practical-2' },
+      { source: 'practical-1', target: 'integration' },
+      { source: 'practical-2', target: 'integration' },
+      { source: 'integration', target: 'optimization' },
+      { source: 'optimization', target: 'mastery' },
+      { source: 'practical-2', target: 'mastery' },
     ]
   };
   
@@ -913,6 +939,10 @@ function fallbackVerification(node, explanation) {
   };
 }
 
+// Mount modular routes
+app.use('/api/voice', voiceRoutes);
+app.use('/api/trees', treeRoutes);
+
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -935,7 +965,9 @@ app.use((req, res) => {
       'POST /api/node/:nodeId/complete',
       'POST /api/verify',
       'POST /api/reset',
-      'POST /api/generate-tree'
+      'POST /api/generate-tree',
+      'POST /api/voice/transcribe',
+      'CRUD /api/trees/:userId'
     ]
   });
 });
@@ -957,6 +989,8 @@ app.listen(PORT, () => {
   ✓ POST /api/verify             - Verify explanation
   ✓ POST /api/reset              - Reset progress
   ✓ POST /api/generate-tree      - Generate custom tree
+  ✓ POST /api/voice/transcribe   - Transcribe voice input
+  ✓ CRUD /api/trees/:userId      - Manage custom trees
   
   💡 Tip: Visit http://localhost:${PORT} for full API info
   `);

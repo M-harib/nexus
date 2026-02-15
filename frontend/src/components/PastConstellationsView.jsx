@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   fetchPastConstellations,
   updatePastConstellationTags,
@@ -17,6 +17,8 @@ export default function PastConstellationsView({ onOpenConstellation }) {
   const [query, setQuery] = useState('');
   const [activeTag, setActiveTag] = useState('');
   const [tagDraftById, setTagDraftById] = useState({});
+  const [openingId, setOpeningId] = useState(null);
+  const cardRefs = useRef({});
 
   const loadItems = async () => {
     try {
@@ -96,6 +98,42 @@ export default function PastConstellationsView({ onOpenConstellation }) {
     }
   };
 
+  const buildPreviewStars = (seedKey, count = 16) => {
+    const seedString = String(seedKey || 'constellation');
+    let seed = 0;
+    for (let i = 0; i < seedString.length; i += 1) {
+      seed = (seed * 31 + seedString.charCodeAt(i)) >>> 0;
+    }
+    const next = () => {
+      seed = (1664525 * seed + 1013904223) >>> 0;
+      return seed / 4294967295;
+    };
+
+    return Array.from({ length: count }).map((_, idx) => ({
+      id: `${seedKey}-star-${idx}`,
+      x: 7 + next() * 86,
+      y: 12 + next() * 74,
+      size: 1.6 + next() * 2.6,
+      delayMs: Math.round(next() * 650)
+    }));
+  };
+
+  const handleOpen = (item) => {
+    if (!item?.graph?.nodes || !item?.graph?.links || openingId) return;
+
+    const cardElement = cardRefs.current[item.id];
+    const rect = cardElement?.getBoundingClientRect?.();
+    const originRect = rect
+      ? { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
+      : null;
+
+    setOpeningId(item.id);
+    onOpenConstellation?.(item, {
+      originRect,
+      previewStars: buildPreviewStars(item.id, 18)
+    });
+  };
+
   if (loading) {
     return <div className="past-constellations-view">Loading past constellations...</div>;
   }
@@ -142,7 +180,29 @@ export default function PastConstellationsView({ onOpenConstellation }) {
       ) : (
         <div className="past-list">
           {filtered.map((item) => (
-            <div key={item.id} className="past-card">
+            <div
+              key={item.id}
+              className={`past-card ${openingId === item.id ? 'is-opening' : ''}`}
+              ref={(node) => {
+                if (node) cardRefs.current[item.id] = node;
+                else delete cardRefs.current[item.id];
+              }}
+            >
+              <div className="past-card-preview" aria-hidden="true">
+                {buildPreviewStars(item.id, 16).map((star) => (
+                  <span
+                    key={star.id}
+                    className="past-card-star"
+                    style={{
+                      left: `${star.x}%`,
+                      top: `${star.y}%`,
+                      width: `${star.size}px`,
+                      height: `${star.size}px`,
+                      animationDelay: `${star.delayMs}ms`
+                    }}
+                  />
+                ))}
+              </div>
               <div className="past-card-top">
                 <div>
                   <div className="past-card-title">{item.title || 'Untitled Constellation'}</div>
@@ -152,10 +212,10 @@ export default function PastConstellationsView({ onOpenConstellation }) {
                   </div>
                 </div>
                 <div className="past-card-actions">
-                  <button type="button" onClick={() => onOpenConstellation?.(item)} className="past-open-btn">
+                  <button type="button" onClick={() => handleOpen(item)} className="past-open-btn" disabled={!!openingId}>
                     Open
                   </button>
-                  <button type="button" onClick={() => handleDelete(item.id)} className="past-delete-btn">
+                  <button type="button" onClick={() => handleDelete(item.id)} className="past-delete-btn" disabled={!!openingId}>
                     Delete
                   </button>
                 </div>

@@ -1,0 +1,108 @@
+.settings-view {
+  width: min(980px, 90vw);
+  max-height: 80vh;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(8, 10, 20, 0.78);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.settings-title {
+  color: #f6f7ff;
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.settings-subtitle {
+  color: rgba(200, 210, 255, 0.72);
+  font-size: 0.9rem;
+}
+
+.settings-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.settings-item {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.settings-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #6fc4ff;
+  cursor: pointer;
+}
+
+.settings-text-input {
+  width: min(280px, 44vw);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f6f7ff;
+  border-radius: 10px;
+  padding: 0.5rem 0.7rem;
+  outline: none;
+}
+
+.settings-text-input:focus {
+  border-color: rgba(120, 190, 255, 0.65);
+  box-shadow: 0 0 0 2px rgba(120, 190, 255, 0.18);
+}
+
+.settings-color-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings-color-input {
+  width: 40px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.settings-color-code {
+  color: rgba(208, 216, 243, 0.86);
+  font-family: monospace;
+  font-size: 0.84rem;
+}
+
+.settings-item-title {
+  color: #f6f7ff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.settings-item-desc {
+  margin-top: 0.3rem;
+  color: rgba(208, 216, 243, 0.78);
+  font-size: 0.86rem;
+}
+
+@media (max-width: 900px) {
+  .settings-view {
+    width: 94vw;
+  }
+}
