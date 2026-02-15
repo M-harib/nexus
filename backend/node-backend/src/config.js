@@ -7,6 +7,7 @@ module.exports = {
   PORT: process.env.PORT || 5000,
   MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/concept-tree',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
   NODE_ENV: process.env.NODE_ENV || 'development',
   FLASK_DEBUG: process.env.FLASK_DEBUG === 'true',
 

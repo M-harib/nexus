@@ -14,6 +14,7 @@ const conceptRoutes = require('./routes/conceptRoutes');
 const userRoutes = require('./routes/userRoutes');
 const parserRoutes = require('./routes/parserRoutes');
 const treeRoutes = require('./routes/treeRoutes');
+const voiceRoutes = require('./routes/voiceRoutes');
 
 // Initialize Express app
 const app = express();
@@ -44,6 +45,7 @@ app.use('/api/concepts', conceptRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/parser', parserRoutes);
 app.use('/api/trees', treeRoutes);
+app.use('/api/voice', voiceRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -76,7 +78,8 @@ async function startServer() {
       console.log(`\n🚀 Concept Dependency Tree Backend (Node.js)`);
       console.log(`📍 Server running on http://localhost:${PORT}`);
       console.log(`🔌 Environment: ${config.NODE_ENV}`);
-      console.log(`🧠 Gemini API: ${config.GEMINI_API_KEY ? '✓ Configured' : '✗ Not configured'}\n`);
+      console.log(`🧠 Gemini API: ${config.GEMINI_API_KEY ? '✓ Configured' : '✗ Not configured'}`);
+      console.log(`🔊 ElevenLabs API: ${config.ELEVENLABS_API_KEY ? '✓ Configured' : '✗ Not configured'}\n`);
       
       console.log('Available Endpoints:');
       console.log('  Concepts:  GET/POST  /api/concepts');
@@ -84,6 +87,7 @@ async function startServer() {
       console.log('  Parser:    POST      /api/parser/parse');
       console.log('  Status:    GET       /api/parser/status');
       console.log('  Trees:     CRUD      /api/trees/:userId');
+      console.log('  Voice:     POST      /api/voice/transcribe (transcribe audio)');
       console.log('  Health:    GET       /health\n');
     });
   } catch (error) {
