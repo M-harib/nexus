@@ -362,3 +362,13 @@ export const updatePastConstellationGauntletBest = async (id, gauntletBestScore)
     body: JSON.stringify({ gauntletBestScore })
   });
 };
+
+export const updatePastConstellationGraph = async (id, graph) => {
+  return requestConstellationApi(`/api/constellations/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ graph })
+  });
+};

@@ -9,7 +9,7 @@ function pickMime() {
   return undefined;
 }
 
-const BossFightModal = ({ node, onClose, onComplete }) => {
+const BossFightModal = ({ node, onClose, onComplete, debugGuaranteeStarTrialCompletion = false }) => {
   const [transcript, setTranscript] = React.useState('');
   const [feedback, setFeedback] = React.useState('');
   const [stage, setStage] = React.useState('intro'); // intro, loadingQuestions, input, checking, result
@@ -126,12 +126,30 @@ const BossFightModal = ({ node, onClose, onComplete }) => {
   };
 
   const submitForVerification = async (explanationText) => {
-    if (!String(explanationText || '').trim()) {
+    const safeExplanation = String(explanationText || '').trim() || 'Debug mode submission.';
+
+    if (!debugGuaranteeStarTrialCompletion && !String(explanationText || '').trim()) {
       setError('Please provide your explanation.');
       return;
     }
-    if (!allCriticalAnswersPresent()) {
+    if (!debugGuaranteeStarTrialCompletion && !allCriticalAnswersPresent()) {
       setError('Please answer both critical-thinking prompts (at least 8 characters each).');
+      return;
+    }
+
+    if (debugGuaranteeStarTrialCompletion) {
+      const debugResult = {
+        passed: true,
+        score: 100,
+        bestScore: 100,
+        feedback: 'Debug mode enabled: Star Trial completion guaranteed.',
+        message: 'Debug mode pass'
+      };
+      setVerificationResult(debugResult);
+      setFeedback(debugResult.feedback);
+      setTranscript(safeExplanation);
+      setUserExplanation(safeExplanation);
+      setStage('result');
       return;
     }
 
@@ -142,7 +160,7 @@ const BossFightModal = ({ node, onClose, onComplete }) => {
       const criticalAnswers = getNormalizedAnswers();
       const result = await verifyExplanation(
         node.id,
-        explanationText,
+        safeExplanation,
         null,
         node,
         criticalAnswers,
@@ -150,7 +168,7 @@ const BossFightModal = ({ node, onClose, onComplete }) => {
       );
       setVerificationResult(result);
       setFeedback(result.feedback || result.message);
-      setTranscript(explanationText);
+      setTranscript(safeExplanation);
       setStage('result');
     } catch (err) {
       setError(err.message || 'Failed to verify. Please try again.');
@@ -164,7 +182,7 @@ const BossFightModal = ({ node, onClose, onComplete }) => {
 
   const handleSubmitRecording = async () => {
     if (!audioBlob) return;
-    if (!allCriticalAnswersPresent()) {
+    if (!debugGuaranteeStarTrialCompletion && !allCriticalAnswersPresent()) {
       setError('Please answer both critical-thinking prompts before submitting.');
       return;
     }
@@ -187,9 +205,12 @@ const BossFightModal = ({ node, onClose, onComplete }) => {
     }
   };
 
-  const handlePass = () => {
-    onComplete(node.id, userExplanation, verificationResult);
-    onClose();
+  const handlePass = async () => {
+    try {
+      await onComplete(node.id, userExplanation, verificationResult);
+    } catch (err) {
+      setError(err?.message || 'Failed to complete Star Trial. Please try again.');
+    }
   };
 
   const handleRetry = () => {

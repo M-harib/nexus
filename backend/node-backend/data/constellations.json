@@ -11,16 +11,18 @@
           {
             "id": "basics",
             "label": "Calculus\nBasics",
-            "status": "active",
+            "status": "mastered",
             "level": 1,
-            "description": "Fundamental concepts and introduction"
+            "description": "Fundamental concepts and introduction",
+            "score": 100
           },
           {
             "id": "terminology",
             "label": "Key\nTerminology",
-            "status": "locked",
+            "status": "mastered",
             "level": 1,
-            "description": "Essential vocabulary and definitions"
+            "description": "Essential vocabulary and definitions",
+            "score": 100
           }
         ],
         "links": [
@@ -31,7 +33,7 @@
         ]
       },
       "createdAt": "2026-02-15T13:43:21.541Z",
-      "updatedAt": "2026-02-15T13:43:21.541Z"
+      "updatedAt": "2026-02-15T14:04:46.519Z"
     }
   ]
 }

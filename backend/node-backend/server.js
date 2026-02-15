@@ -449,15 +449,16 @@ app.post('/api/constellations', async (req, res) => {
 app.patch('/api/constellations/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { tags, title, gauntletBestScore } = req.body || {};
+    const { tags, title, gauntletBestScore, graph } = req.body || {};
     const hasTags = Object.prototype.hasOwnProperty.call(req.body || {}, 'tags');
     const hasTitle = Object.prototype.hasOwnProperty.call(req.body || {}, 'title');
     const hasGauntletBest = Object.prototype.hasOwnProperty.call(req.body || {}, 'gauntletBestScore');
+    const hasGraph = Object.prototype.hasOwnProperty.call(req.body || {}, 'graph');
 
-    if (!hasTags && !hasTitle && !hasGauntletBest) {
+    if (!hasTags && !hasTitle && !hasGauntletBest && !hasGraph) {
       return res.status(400).json({
         success: false,
-        message: 'at least one of tags, title, or gauntletBestScore is required'
+        message: 'at least one of tags, title, gauntletBestScore, or graph is required'
       });
     }
 
@@ -480,6 +481,20 @@ app.patch('/api/constellations/:id', async (req, res) => {
         success: false,
         message: 'title cannot be empty'
       });
+    }
+
+    if (hasGraph) {
+      if (
+        !graph ||
+        typeof graph !== 'object' ||
+        !Array.isArray(graph.nodes) ||
+        !Array.isArray(graph.links)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: 'graph must be an object with nodes and links arrays when provided'
+        });
+      }
     }
 
     let cleanGauntletBest = null;
@@ -517,6 +532,9 @@ app.patch('/api/constellations/:id', async (req, res) => {
       store.items[idx].gauntletBestScore = existingBest === null
         ? cleanGauntletBest
         : Math.max(existingBest, cleanGauntletBest);
+    }
+    if (hasGraph) {
+      store.items[idx].graph = graph;
     }
     store.items[idx].updatedAt = new Date().toISOString();
     await writeConstellationStore(store);

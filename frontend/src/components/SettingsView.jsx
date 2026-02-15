@@ -109,6 +109,20 @@ export default function SettingsView({ settings, onChange }) {
             onChange={(e) => onChange?.({ stargazeNodeCap: e.target.value })}
           />
         </label>
+
+        <label className="settings-item">
+          <div className="settings-copy">
+            <div className="settings-item-title">DEBUG: Guarantee Star Trial Completion</div>
+            <div className="settings-item-desc">
+              Automatically passes Star Trials when submitting an attempt.
+            </div>
+          </div>
+          <input
+            type="checkbox"
+            checked={!!settings?.debugGuaranteeStarTrialCompletion}
+            onChange={(e) => onChange?.({ debugGuaranteeStarTrialCompletion: e.target.checked })}
+          />
+        </label>
       </div>
     </div>
   );

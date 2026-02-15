@@ -27,7 +27,8 @@ const DEFAULT_APP_SETTINGS = {
   userName: '',
   starColor: '#ffffff',
   nodeColor: '#ffffff',
-  stargazeNodeCap: 12
+  stargazeNodeCap: 12,
+  debugGuaranteeStarTrialCompletion: false
 };
 
 const PAGE_CONTENT = {
@@ -434,6 +435,7 @@ function App() {
               starColor={starColor}
               gauntletLaunchTick={gauntletLaunchTick}
               constellationId={currentConstellationId}
+              debugGuaranteeStarTrialCompletion={!!appSettings.debugGuaranteeStarTrialCompletion}
             />
           </div>
           {constellationLeaveTransition && <div className="constellation-leave-dissolve-overlay" />}

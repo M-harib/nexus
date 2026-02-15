@@ -2,7 +2,14 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { knowledgeGraphData } from '../data/knowledgeGraph';
 import FIXED_STARS from '../data/stars';
-import { fetchKnowledgeGraph, completeNode, verifyExplanation, generateCustomTree, updatePastConstellationGauntletBest } from '../services/api';
+import {
+  fetchKnowledgeGraph,
+  completeNode,
+  verifyExplanation,
+  generateCustomTree,
+  updatePastConstellationGauntletBest,
+  updatePastConstellationGraph
+} from '../services/api';
 import BossFightModal from './BossFightModal';
 import StarGauntletModal from './StarGauntletModal';
 import ConstellationLoader from './ConstellationLoader';
@@ -621,7 +628,8 @@ export default function ConstellationView({
   backgroundStarsEnabled = true,
   starColor = '#ffffff',
   gauntletLaunchTick = 0,
-  constellationId = null
+  constellationId = null,
+  debugGuaranteeStarTrialCompletion = false
 }) {
   const [selectedNode, setSelectedNode] = useState(null);
   const [graphData, setGraphData] = useState(knowledgeGraphData); // Start with local data as fallback
@@ -634,6 +642,7 @@ export default function ConstellationView({
   const [unlockedNodes, setUnlockedNodes] = useState([]);
   const [animatingEdges, setAnimatingEdges] = useState([]);
   const graphContainerRef = useRef(null);
+  const pendingGraphSaveRef = useRef(null);
   const [cursorPoint, setCursorPoint] = useState(null);
   const constellationBgStars = useMemo(
     () => FIXED_STARS.filter((star, idx) => idx % 2 === 0),
@@ -674,6 +683,16 @@ export default function ConstellationView({
     if (!gauntletLaunchTick) return;
     setShowGauntlet(true);
   }, [gauntletLaunchTick]);
+
+  useEffect(() => {
+    if (!constellationId || !pendingGraphSaveRef.current) return;
+    const pendingGraph = pendingGraphSaveRef.current;
+    pendingGraphSaveRef.current = null;
+    updatePastConstellationGraph(constellationId, pendingGraph).catch((persistErr) => {
+      console.error('Failed to flush queued constellation graph save:', persistErr);
+      pendingGraphSaveRef.current = pendingGraph;
+    });
+  }, [constellationId]);
   
   // Resolve graph from props or backend
   useEffect(() => {
@@ -748,7 +767,16 @@ export default function ConstellationView({
     try {
       // Find the node data to pass to backend
       const nodeData = graphData.nodes.find(n => n.id === nodeId);
-      const verifyResult = verificationResult || await verifyExplanation(nodeId, explanation, null, nodeData);
+      const verifyResult = debugGuaranteeStarTrialCompletion
+        ? {
+            passed: true,
+            score: 100,
+            bestScore: 100,
+            previousBestScore: typeof nodeData?.score === 'number' ? nodeData.score : null,
+            scoreDeltaPercent: null,
+            feedback: 'Debug mode: Star Trial guaranteed completion.'
+          }
+        : (verificationResult || await verifyExplanation(nodeId, explanation, null, nodeData));
       if (verifyResult.passed) {
         // If passed, complete the node
         const result = await completeNode(nodeId, verifyResult.bestScore || verifyResult.score);
@@ -783,7 +811,18 @@ export default function ConstellationView({
           
           // Update state
           setGraphData(updatedGraph);
+          setSelectedNode(null);
           setUnlockedNodes(dependentNodeIds);
+
+          if (constellationId) {
+            try {
+              await updatePastConstellationGraph(constellationId, updatedGraph);
+            } catch (persistErr) {
+              console.error('Failed to persist node completion to constellation store:', persistErr);
+            }
+          } else {
+            pendingGraphSaveRef.current = updatedGraph;
+          }
           
           // Animate edges to unlocked nodes
           const animatingEdgeIds = updatedGraph.links
@@ -827,7 +866,10 @@ export default function ConstellationView({
               `Change: ${deltaDisplay}`
             ]
           });
+          return;
         }
+
+        throw new Error(result?.message || 'Failed to complete node');
       } else {
         setToast({
           type: 'error',
@@ -845,6 +887,7 @@ export default function ConstellationView({
         title: '⚠️ Error',
         lines: ['Failed to verify explanation. Please try again.']
       });
+      throw err;
     }
   };
 
@@ -1295,6 +1338,7 @@ export default function ConstellationView({
             setCurrentBossNode(null);
           }}
           onComplete={handleBossFightComplete}
+          debugGuaranteeStarTrialCompletion={debugGuaranteeStarTrialCompletion}
         />
       )}
 
