@@ -548,29 +548,66 @@ export default function ConstellationView({ onBack, userPrompt }) {
     const loadGraphData = async () => {
       try {
         setIsLoading(true);
+        console.log('🎬 Starting loadGraphData - userPrompt:', userPrompt);
         
         // If user provided a prompt, generate custom tree
         if (userPrompt && userPrompt.trim()) {
+          console.log('🔍 Fetching custom tree for:', userPrompt);
           const result = await generateCustomTree(userPrompt);
-          if (result.success && result.graph) {
-            setGraphData(result.graph);
+          console.log('📦 Received API result:', JSON.stringify(result, null, 2));
+          console.log('📊 Result structure check:', {
+            hasResult: !!result,
+            hasSuccess: result?.success,
+            hasGraph: !!result?.graph,
+            hasNodes: !!result?.graph?.nodes,
+            nodesIsArray: Array.isArray(result?.graph?.nodes),
+            nodesCount: result?.graph?.nodes?.length,
+            hasLinks: !!result?.graph?.links,
+            linksIsArray: Array.isArray(result?.graph?.links),
+            linksCount: result?.graph?.links?.length
+          });
+          
+          if (result && result.success && result.graph && result.graph.nodes && result.graph.links) {
+            console.log('✅ Valid graph data - setting state!');
+            console.log('   Nodes:', result.graph.nodes.length);
+            console.log('   Links:', result.graph.links.length);
+            console.log('   First node:', result.graph.nodes[0]);
+            
+            // Force new object reference to ensure React detects change
+            const newGraph = {
+              nodes: [...result.graph.nodes],
+              links: [...result.graph.links]
+            };
+            
+            setGraphData(newGraph);
             setGeneratedTopic(result.topic);
             setError(null);
+            console.log('✅ State updated! New graph has', newGraph.nodes.length, 'nodes');
           } else {
-            throw new Error('Failed to generate custom tree');
+            console.error('❌ Invalid graph structure:', result);
+            console.error('   Validation failed - check structure above');
+            throw new Error('Failed to generate custom tree - invalid structure');
           }
         } else {
           // Otherwise load default tree
+          console.log('📚 Loading default tree (no userPrompt)');
           const data = await fetchKnowledgeGraph();
-          setGraphData(data);
-          setError(null);
+          if (data && data.nodes && data.links) {
+            setGraphData(data);
+            setError(null);
+          } else {
+            throw new Error('Invalid default graph data');
+          }
         }
       } catch (err) {
-        console.error('Failed to fetch graph, using local data:', err);
+        console.error('❌ Failed to fetch graph, using local fallback:', err);
+        console.error('   Error details:', err.message);
+        console.error('   Stack:', err.stack);
         setError('Using offline data');
-        // Keep using knowledgeGraphData as fallback
+        setGraphData(knowledgeGraphData); // Explicitly set fallback data
       } finally {
         setIsLoading(false);
+        console.log('✅ loadGraphData complete');
       }
     };
 
@@ -590,7 +627,9 @@ export default function ConstellationView({ onBack, userPrompt }) {
   // Handle boss fight completion
   const handleBossFightComplete = async (nodeId, explanation, verificationResult) => {
     try {
-      const verifyResult = verificationResult || await verifyExplanation(nodeId, explanation);
+      // Find the node data to pass to backend
+      const nodeData = graphData.nodes.find(n => n.id === nodeId);
+      const verifyResult = verificationResult || await verifyExplanation(nodeId, explanation, null, nodeData);
       if (verifyResult.passed) {
         // If passed, complete the node
         const result = await completeNode(nodeId, verifyResult.bestScore || verifyResult.score);
@@ -683,6 +722,27 @@ export default function ConstellationView({ onBack, userPrompt }) {
   if (isLoading) {
     return <ConstellationLoader />;
   }
+  
+  // Validate graph data before rendering
+  if (!graphData || !graphData.nodes || !Array.isArray(graphData.nodes) || graphData.nodes.length === 0) {
+    console.error('❌ Invalid graph data structure:', graphData);
+    return (
+      <div className="w-full h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-center">
+          <p className="text-2xl mb-4">⚠️ Error loading constellation</p>
+          <p className="text-gray-400">Graph data is invalid or empty</p>
+          <button 
+            onClick={onBack}
+            className="mt-6 px-6 py-3 bg-white/20 border border-white/30 rounded-lg hover:bg-white/30"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  console.log('🎨 Rendering constellation with', graphData.nodes.length, 'nodes');
   
   // Position nodes in a constellation pattern (top to bottom)
   // Dynamic positioning based on node levels

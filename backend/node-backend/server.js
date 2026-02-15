@@ -23,19 +23,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // In-memory database (for hackathon speed)
 let knowledgeGraph = {
   nodes: [
-    { id: 'programming-basics', label: 'Programming\nBasics', status: 95, level: 1, description: 'Variables, loops, conditionals' },
-    { id: 'data-structures', label: 'Data\nStructures', status: 0, level: 2, description: 'Arrays, Lists, Hash Tables' },
-    { id: 'algorithms', label: 'Algorithms', status: -1, level: 2, description: 'Sorting, Searching, Complexity' },
-    { id: 'linear-algebra', label: 'Linear\nAlgebra', status: -1, level: 3, description: 'Vectors, Matrices, Eigenvalues' },
-    { id: 'statistics', label: 'Statistics &\nProbability', status: -1, level: 3, description: 'Distributions, Hypothesis Testing' },
-    { id: 'calculus', label: 'Calculus', status: -1, level: 3, description: 'Derivatives, Integrals, Optimization' },
-    { id: 'python', label: 'Python for\nML', status: -1, level: 4, description: 'NumPy, Pandas, Matplotlib' },
-    { id: 'ml-basics', label: 'Machine\nLearning Basics', status: -1, level: 4, description: 'Supervised vs Unsupervised Learning' },
-    { id: 'neural-networks', label: 'Neural\nNetworks', status: -1, level: 5, description: 'Perceptrons, Backpropagation' },
-    { id: 'deep-learning', label: 'Deep\nLearning', status: -1, level: 5, description: 'CNNs, RNNs, Transformers' },
-    { id: 'computer-vision', label: 'Computer\nVision', status: -1, level: 6, description: 'Image Recognition, Object Detection' },
-    { id: 'nlp', label: 'Natural Language\nProcessing', status: -1, level: 6, description: 'Text Analysis, LLMs' },
-    { id: 'reinforcement-learning', label: 'Reinforcement\nLearning', status: -1, level: 6, description: 'Q-Learning, Policy Gradients' },
+    { id: 'programming-basics', label: 'Programming\nBasics', status: 'mastered', level: 1, description: 'Variables, loops, conditionals' },
+    { id: 'data-structures', label: 'Data\nStructures', status: 'active', level: 2, description: 'Arrays, Lists, Hash Tables' },
+    { id: 'algorithms', label: 'Algorithms', status: 'locked', level: 2, description: 'Sorting, Searching, Complexity' },
+    { id: 'linear-algebra', label: 'Linear\nAlgebra', status: 'locked', level: 3, description: 'Vectors, Matrices, Eigenvalues' },
+    { id: 'statistics', label: 'Statistics &\nProbability', status: 'locked', level: 3, description: 'Distributions, Hypothesis Testing' },
+    { id: 'calculus', label: 'Calculus', status: 'locked', level: 3, description: 'Derivatives, Integrals, Optimization' },
+    { id: 'python', label: 'Python for\nML', status: 'locked', level: 4, description: 'NumPy, Pandas, Matplotlib' },
+    { id: 'ml-basics', label: 'Machine\nLearning Basics', status: 'locked', level: 4, description: 'Supervised vs Unsupervised Learning' },
+    { id: 'neural-networks', label: 'Neural\nNetworks', status: 'locked', level: 5, description: 'Perceptrons, Backpropagation' },
+    { id: 'deep-learning', label: 'Deep\nLearning', status: 'locked', level: 5, description: 'CNNs, RNNs, Transformers' },
+    { id: 'computer-vision', label: 'Computer\nVision', status: 'locked', level: 6, description: 'Image Recognition, Object Detection' },
+    { id: 'nlp', label: 'Natural Language\nProcessing', status: 'locked', level: 6, description: 'Text Analysis, LLMs' },
+    { id: 'reinforcement-learning', label: 'Reinforcement\nLearning', status: 'locked', level: 6, description: 'Q-Learning, Policy Gradients' },
   ],
   links: [
     { source: 'programming-basics', target: 'data-structures' },
@@ -118,13 +118,17 @@ app.post('/api/node/:nodeId/complete', (req, res) => {
   const { nodeId } = req.params;
   const { score } = req.body || {};
   
-  // Find the node
+  // Find the node in backend's knowledgeGraph
   const nodeIndex = knowledgeGraph.nodes.findIndex(n => n.id === nodeId);
   
+  // If node not in backend graph, it's from an AI-generated tree
+  // Frontend handles those updates, so just return success
   if (nodeIndex === -1) {
-    return res.status(404).json({
-      success: false,
-      message: 'Node not found'
+    return res.json({
+      success: true,
+      message: `Node completed successfully!`,
+      unlockedNodes: [],
+      updatedGraph: {} // Frontend manages AI-generated graphs
     });
   }
   
@@ -194,17 +198,28 @@ app.post('/api/node/:nodeId/complete', (req, res) => {
 
 // Verify explanation with Gemini AI
 app.post('/api/verify', async (req, res) => {
-  const { nodeId, explanation, audioData } = req.body;
+  const { nodeId, explanation, audioData, node: providedNode } = req.body;
   
   console.log('\n========================================');
   console.log('🎯 BOSS FIGHT VERIFICATION REQUEST');
   console.log('========================================');
   console.log('Node ID:', nodeId);
   console.log('Explanation length:', explanation ? explanation.length : 0);
+  console.log('Provided node:', providedNode ? 'YES' : 'NO');
+  console.log('Audio data:', audioData ? 'YES' : 'NO');
   
-  // Find the node
-  const nodeIndex = knowledgeGraph.nodes.findIndex(n => n.id === nodeId);
-  const node = knowledgeGraph.nodes[nodeIndex];
+  // Use provided node data from frontend (for AI-generated trees) or look up in backend graph
+  let node = providedNode;
+  let nodeIndex = -1;
+  
+  if (!node) {
+    console.log('📍 No node provided, looking up in backend graph...');
+    // Fall back to looking up in backend's knowledgeGraph (for default tree)
+    nodeIndex = knowledgeGraph.nodes.findIndex(n => n.id === nodeId);
+    node = knowledgeGraph.nodes[nodeIndex];
+  } else {
+    console.log('✓ Using provided node from frontend');
+  }
   
   if (!node) {
     console.log('❌ Node not found:', nodeId);
@@ -214,7 +229,18 @@ app.post('/api/verify', async (req, res) => {
     });
   }
   
-  if (node.status === STATUS.LOCKED) {
+  console.log('✓ Node found:', node.label);
+  console.log('  Node status:', node.status, '(type:', typeof node.status, ')');
+  
+  // Check if node is locked (only for backend graph nodes)
+  const normalizedStatus = typeof node.status === 'number' 
+    ? (node.status > 0 ? 'mastered' : node.status === 0 ? 'active' : 'locked')
+    : node.status;
+  
+  console.log('  Normalized status:', normalizedStatus);
+    
+  if (normalizedStatus === 'locked') {
+    console.log('❌ Node is locked');
     return res.status(400).json({
       success: false,
       message: 'Node is locked. Complete prerequisites first.',
@@ -229,6 +255,8 @@ app.post('/api/verify', async (req, res) => {
       message: 'Please provide a detailed explanation (at least 10 characters)'
     });
   }
+  
+  console.log('✓ All checks passed, calling AI verification...');
 
   try {
     console.log('🤖 Calling Gemini AI for verification...');
@@ -238,7 +266,12 @@ app.post('/api/verify', async (req, res) => {
     console.log('Score:', result.score);
     console.log('Passed:', result.passed);
 
-    const previousBestScore = node.status > STATUS.ACTIVE ? node.status : null;
+    // Only update backend graph if node exists in it (not for AI-generated nodes)
+    let previousBestScore = null;
+    if (nodeIndex !== -1 && knowledgeGraph.nodes[nodeIndex]) {
+      previousBestScore = knowledgeGraph.nodes[nodeIndex].status > STATUS.ACTIVE ? knowledgeGraph.nodes[nodeIndex].status : null;
+    }
+    
     const bestScore = previousBestScore === null ? null : Math.max(previousBestScore, result.score);
     const scoreDelta = previousBestScore === null ? null : result.score - previousBestScore;
     const scoreDeltaPercent = previousBestScore
@@ -246,8 +279,8 @@ app.post('/api/verify', async (req, res) => {
       : null;
     const improvedBest = previousBestScore === null ? true : result.score > previousBestScore;
     
-    // Persist best score only for already-mastered nodes; active-node completion happens in /complete.
-    if (previousBestScore !== null) {
+    // Persist best score only for nodes in backend graph
+    if (nodeIndex !== -1 && previousBestScore !== null) {
       knowledgeGraph.nodes[nodeIndex].status = bestScore;
     }
     userProgress.completedChallenges += 1;
@@ -270,6 +303,7 @@ app.post('/api/verify', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Verification failed:', error.message);
+    console.error('❌ Error stack:', error.stack);
     console.log('========================================\n');
     res.status(500).json({
       success: false,
@@ -486,13 +520,13 @@ function generateGenericTree(topic) {
   
   const tree = {
     nodes: [
-      { id: 'basics', label: `${capitalizedTopic}\nBasics`, status: 95, level: 1, description: 'Fundamental concepts and introduction' },
-      { id: 'fundamentals', label: 'Core\nFundamentals', status: 0, level: 2, description: 'Essential principles and practices' },
-      { id: 'intermediate', label: 'Intermediate\nConcepts', status: -1, level: 3, description: 'Building on the foundations' },
-      { id: 'advanced-1', label: 'Advanced\nTopics I', status: -1, level: 4, description: 'Deep dive into complex areas' },
-      { id: 'advanced-2', label: 'Advanced\nTopics II', status: -1, level: 4, description: 'Specialized knowledge' },
-      { id: 'practical', label: 'Practical\nApplications', status: -1, level: 5, description: 'Real-world projects and use cases' },
-      { id: 'mastery', label: 'Mastery &\nBest Practices', status: -1, level: 6, description: 'Expert-level skills' },
+      { id: 'basics', label: `${capitalizedTopic}\nBasics`, status: 'mastered', level: 1, description: 'Fundamental concepts and introduction' },
+      { id: 'fundamentals', label: 'Core\nFundamentals', status: 'active', level: 2, description: 'Essential principles and practices' },
+      { id: 'intermediate', label: 'Intermediate\nConcepts', status: 'locked', level: 3, description: 'Building on the foundations' },
+      { id: 'advanced-1', label: 'Advanced\nTopics I', status: 'locked', level: 4, description: 'Deep dive into complex areas' },
+      { id: 'advanced-2', label: 'Advanced\nTopics II', status: 'locked', level: 4, description: 'Specialized knowledge' },
+      { id: 'practical', label: 'Practical\nApplications', status: 'locked', level: 5, description: 'Real-world projects and use cases' },
+      { id: 'mastery', label: 'Mastery &\nBest Practices', status: 'locked', level: 6, description: 'Expert-level skills' },
     ],
     links: [
       { source: 'basics', target: 'fundamentals' },

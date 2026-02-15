@@ -37,13 +37,19 @@ function App() {
     setTimeout(() => {
       setTelescopeMode(true);
       setFadingOut(false);
-    }, 1700);
+    }, 500);
   };
 
   const handleTelescopeComplete = (tree) => {
     setConstellationData(tree);
     setTelescopeMode(false);
     setConstellationMode(true);
+  };
+
+  const handleConstellationBack = () => {
+    setConstellationMode(false);
+    setConstellationData(null);
+    setSearchQuery('');
   };
 
   if (showSplash) {
@@ -55,11 +61,11 @@ function App() {
     );
   }
 
-  if (constellationMode && constellationData) {
+  if (constellationMode) {
     return (
       <div className="h-screen w-screen bg-black text-gray-100 overflow-hidden">
         <StarryBackground hideMeteors={false} splashDone={true} />
-        <ConstellationView graphData={constellationData} query={searchQuery} />
+        <ConstellationView userPrompt={searchQuery} onBack={handleConstellationBack} />
       </div>
     );
   }

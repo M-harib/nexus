@@ -66,7 +66,7 @@ export const completeNode = async (nodeId, score = null) => {
 const DEBUG_AUTO_PASS = false;
 
 // Verify user explanation (for boss fight)
-export const verifyExplanation = async (nodeId, explanation, audioData = null) => {
+export const verifyExplanation = async (nodeId, explanation, audioData = null, nodeData = null) => {
   // Debug mode: auto-pass all verifications
   if (DEBUG_AUTO_PASS) {
     return {
@@ -89,6 +89,7 @@ export const verifyExplanation = async (nodeId, explanation, audioData = null) =
         nodeId,
         explanation,
         audioData,
+        node: nodeData, // Pass the full node object
       }),
     });
     const data = await handleResponse(response);
