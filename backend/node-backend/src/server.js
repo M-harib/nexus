@@ -78,7 +78,8 @@ async function startServer() {
       console.log(`\n🚀 Concept Dependency Tree Backend (Node.js)`);
       console.log(`📍 Server running on http://localhost:${PORT}`);
       console.log(`🔌 Environment: ${config.NODE_ENV}`);
-      console.log(`🧠 Gemini API: ${config.GEMINI_API_KEY ? '✓ Configured' : '✗ Not configured'}\n`);
+      console.log(`🧠 Gemini API: ${config.GEMINI_API_KEY ? '✓ Configured' : '✗ Not configured'}`);
+      console.log(`🔊 ElevenLabs API: ${config.ELEVENLABS_API_KEY ? '✓ Configured' : '✗ Not configured'}\n`);
       
       console.log('Available Endpoints:');
       console.log('  Concepts:  GET/POST  /api/concepts');
@@ -86,6 +87,7 @@ async function startServer() {
       console.log('  Parser:    POST      /api/parser/parse');
       console.log('  Status:    GET       /api/parser/status');
       console.log('  Trees:     CRUD      /api/trees/:userId');
+      console.log('  Voice:     POST      /api/voice/transcribe (transcribe audio)');
       console.log('  Health:    GET       /health\n');
     });
   } catch (error) {
