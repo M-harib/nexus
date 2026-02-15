@@ -1,6 +1,13 @@
 import React from 'react';
 import './BossFightModal.css';
-import { evaluateStarGauntletAnswer, generateStarTrialQuestions } from '../services/api';
+import { evaluateStarGauntletAnswer, generateStarTrialQuestions, transcribeAudio } from '../services/api';
+
+function pickMime() {
+  for (const m of ['audio/webm;codecs=opus', 'audio/webm']) {
+    if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(m)) return m;
+  }
+  return undefined;
+}
 
 function normalizeNodeStatus(node) {
   if (typeof node?.status === 'number') {
@@ -30,12 +37,25 @@ export default function StarGauntletModal({ graphData, onClose, onComplete }) {
   const [prompts, setPrompts] = React.useState([]);
   const [answersById, setAnswersById] = React.useState({});
   const [result, setResult] = React.useState(null);
+  const [inputMode, setInputMode] = React.useState('type');
+  const [activePromptId, setActivePromptId] = React.useState('');
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [audioBlob, setAudioBlob] = React.useState(null);
+  const [audioUrl, setAudioUrl] = React.useState(null);
+  const [micStatus, setMicStatus] = React.useState('');
+  const [isTranscribing, setIsTranscribing] = React.useState(false);
+  const mediaRecorderRef = React.useRef(null);
+  const chunksRef = React.useRef([]);
 
   const masteredNodes = React.useMemo(
     () => (Array.isArray(graphData?.nodes) ? graphData.nodes.filter((node) => isMasteredNode(node)) : []),
     [graphData]
   );
   const canStart = masteredNodes.length > 0;
+
+  React.useEffect(() => () => {
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+  }, [audioUrl]);
 
   const begin = async () => {
     if (!canStart) {
@@ -84,10 +104,86 @@ export default function StarGauntletModal({ graphData, onClose, onComplete }) {
       const allPrompts = [...generatedPrompts, ...criticalPrompts];
       setPrompts(allPrompts);
       setAnswersById(Object.fromEntries(allPrompts.map((item) => [item.id, ''])));
+      setActivePromptId(allPrompts[0]?.id || '');
+      setInputMode('type');
+      setAudioBlob(null);
+      setAudioUrl(null);
+      setMicStatus('');
       setStage('input');
     } catch (err) {
       setError(err?.message || 'Failed to prepare Star Gauntlet prompts.');
       setStage('intro');
+    }
+  };
+
+  const startRecording = async () => {
+    setError('');
+    setMicStatus('Requesting microphone...');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = pickMime();
+      const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      chunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType });
+        if (audioUrl) URL.revokeObjectURL(audioUrl);
+        setAudioBlob(blob);
+        setAudioUrl(URL.createObjectURL(blob));
+        setMicStatus('Recording saved. Transcribe to selected prompt.');
+        stream.getTracks().forEach((t) => t.stop());
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+      setMicStatus('Recording...');
+    } catch (err) {
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setError('Microphone permission denied. Please allow access and try again.');
+      } else {
+        setError(`Microphone error: ${err.message}`);
+      }
+      setMicStatus('');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+  };
+
+  const discardRecording = () => {
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    setAudioBlob(null);
+    setAudioUrl(null);
+    setMicStatus('Recording discarded.');
+  };
+
+  const transcribeToSelectedPrompt = async () => {
+    if (!audioBlob) return;
+    if (!activePromptId) {
+      setError('Select a prompt target before transcription.');
+      return;
+    }
+    setError('');
+    setIsTranscribing(true);
+    setMicStatus('Transcribing audio...');
+    try {
+      const text = await transcribeAudio(audioBlob);
+      setAnswersById((prev) => ({ ...prev, [activePromptId]: text }));
+      setMicStatus('Transcript inserted into selected prompt.');
+    } catch (err) {
+      setError(err?.message || 'Transcription failed.');
+      setMicStatus('');
+    } finally {
+      setIsTranscribing(false);
     }
   };
 
@@ -173,6 +269,61 @@ export default function StarGauntletModal({ graphData, onClose, onComplete }) {
 
         {stage === 'input' && (
           <div className="stage-content">
+            <div className="mode-toggle">
+              {['type', 'mic'].map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => {
+                    setInputMode(mode);
+                    setError('');
+                  }}
+                  className={`mode-btn ${inputMode === mode ? 'active' : ''}`}
+                >
+                  {mode === 'type' ? 'Type' : 'Mic'}
+                </button>
+              ))}
+            </div>
+
+            {inputMode === 'mic' && (
+              <div className="mic-block" style={{ marginBottom: 12 }}>
+                <div style={{ marginBottom: 8 }}>
+                  <label className="word-count" style={{ display: 'block', marginBottom: 6 }}>Target Prompt</label>
+                  <select
+                    className="trial-answer-input"
+                    value={activePromptId}
+                    onChange={(e) => setActivePromptId(e.target.value)}
+                    style={{ minHeight: 40 }}
+                  >
+                    {prompts.map((item, idx) => (
+                      <option key={item.id} value={item.id}>
+                        {idx === 0 ? 'Explanation Prompt' : `Critical Prompt ${idx}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mic-actions">
+                  {!isRecording && !audioBlob && (
+                    <button className="start-btn" onClick={startRecording}>Start Recording</button>
+                  )}
+                  {isRecording && (
+                    <button className="start-btn danger" onClick={stopRecording}>Stop Recording</button>
+                  )}
+                  {audioBlob && !isRecording && (
+                    <>
+                      <button className="start-btn secondary" onClick={discardRecording}>Re-record</button>
+                      <button className="start-btn" onClick={transcribeToSelectedPrompt} disabled={isTranscribing}>
+                        {isTranscribing ? 'Processing...' : 'Transcribe to Prompt'}
+                      </button>
+                    </>
+                  )}
+                </div>
+                {audioUrl && !isRecording && (
+                  <audio controls src={audioUrl} style={{ width: '100%', marginTop: 8 }} />
+                )}
+                {micStatus && <div className="mic-status">{micStatus}</div>}
+              </div>
+            )}
+
             <div className="trial-question-list">
               {prompts.map((item, idx) => (
                 <div className="trial-question-card" key={item.id}>
