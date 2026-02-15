@@ -5,6 +5,35 @@ const API_BASE_URL = import.meta.env.DEV
   : (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
+const buildFallbackGeneratedTree = (topic = 'New Topic') => {
+  const base = String(topic || 'New Topic').trim() || 'New Topic';
+  const topicClean = base.replace(/\s+/g, ' ').slice(0, 40);
+  const topicId = topicClean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'topic';
+  return {
+    success: true,
+    topic: topicClean,
+    generation: {
+      source: 'fallback',
+      reason: 'frontend-fallback'
+    },
+    graph: {
+      nodes: [
+        { id: `${topicId}-basics`, label: `${topicClean}\nBasics`, status: 'active', level: 1, description: `Foundations of ${topicClean}` },
+        { id: `${topicId}-concepts`, label: 'Core\nConcepts', status: 'locked', level: 2, description: `Key concepts in ${topicClean}` },
+        { id: `${topicId}-practice`, label: 'Guided\nPractice', status: 'locked', level: 3, description: `Practice patterns for ${topicClean}` },
+        { id: `${topicId}-advanced`, label: 'Advanced\nTopics', status: 'locked', level: 4, description: `Advanced ideas in ${topicClean}` },
+        { id: `${topicId}-mastery`, label: 'Mastery', status: 'locked', level: 5, description: `Integrate and apply ${topicClean}` }
+      ],
+      links: [
+        { source: `${topicId}-basics`, target: `${topicId}-concepts` },
+        { source: `${topicId}-concepts`, target: `${topicId}-practice` },
+        { source: `${topicId}-practice`, target: `${topicId}-advanced` },
+        { source: `${topicId}-advanced`, target: `${topicId}-mastery` }
+      ]
+    }
+  };
+};
+
 // Helper function to handle API errors
 const handleResponse = async (response) => {
   if (!response.ok) {
@@ -197,7 +226,8 @@ export const generateCustomTree = async (topic, difficulty = 'medium') => {
     return data;
   } catch (error) {
     console.error('Error generating custom tree:', error);
-    throw error;
+    console.warn('Falling back to local generated tree due to API failure.');
+    return buildFallbackGeneratedTree(topic);
   }
 };
 
