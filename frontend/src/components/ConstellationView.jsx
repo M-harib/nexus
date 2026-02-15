@@ -50,7 +50,11 @@ const getNodeMotionProfile = (nodeId) => {
   const rotationDuration = 7 + (hash % 6); // 7..12 sec
   const shimmerDuration = 2.6 + ((hash >>> 3) % 22) / 10; // 2.6..4.7 sec
   const shimmerDelay = ((hash >>> 5) % 14) / 10; // 0..1.3 sec
-  return { dir, swing, rotationDuration, shimmerDuration, shimmerDelay };
+  const driftX = 4 + ((hash >>> 7) % 18) / 10; // 1.6..3.3px
+  const driftY = 4 + ((hash >>> 9) % 18) / 10; // 1.6..3.3px
+  const driftDuration = 6 + ((hash >>> 11) % 24) / 2; // 8.5..20.5 sec
+  const driftDelay = ((hash >>> 13) % 18) / 10; // 0..1.7 sec
+  return { dir, swing, rotationDuration, shimmerDuration, shimmerDelay, driftX, driftY, driftDuration, driftDelay };
 };
 
 const isHexColor = (value) => /^#[0-9a-fA-F]{6}$/.test(String(value || '').trim());
@@ -96,6 +100,8 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
       animate={isUnlocking ? {
         left: `${position.x}%`,
         top: `${position.y}%`,
+        x: 0,
+        y: 0,
         scale: [1, 1.3, 1],
         opacity: 1,
         rotate: 0,
@@ -107,6 +113,8 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
       } : {
         left: `${position.x}%`,
         top: `${position.y}%`,
+        x: [0, motionProfile.driftX, 0, -motionProfile.driftX * 0.7, 0],
+        y: [0, -motionProfile.driftY, 0, motionProfile.driftY * 0.8, 0],
         scale: 1,
         opacity: 1,
         rotate: 0
@@ -119,6 +127,8 @@ function ConstellationNode({ node, position, onClick, isSelected, isUnlocking = 
       } : {
         left: { type: 'spring', damping: 22, mass: 0.8, delay: node.level * 0.03 },
         top: { type: 'spring', damping: 22, mass: 0.8, delay: node.level * 0.03 },
+        x: { duration: motionProfile.driftDuration, ease: 'easeInOut', repeat: Infinity, delay: motionProfile.driftDelay },
+        y: { duration: motionProfile.driftDuration * 0.92, ease: 'easeInOut', repeat: Infinity, delay: motionProfile.driftDelay * 0.8 },
         duration: 1.2,
         delay: node.level * 0.15,
         type: 'spring',
@@ -345,7 +355,7 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [], 
   return (
     <svg
       className="absolute inset-0 pointer-events-none"
-      style={{ width: '100%', height: '100%' }}
+      style={{ width: '100%', height: '100%', shapeRendering: 'geometricPrecision' }}
     >
       <defs>
         <filter id="constellation-glow">
@@ -388,14 +398,14 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [], 
         const isAnimating = animatingEdges.includes(i);
         
         // Base edge styling
-        let strokeOpacity = 0.32;
-        let strokeWidth = 5.2;
+        let strokeOpacity = 0.3;
+        let strokeWidth = 2.2;
         let strokeColor = withAlpha(baseColor, 0.55);
         
         const sourceStatus = sourceNode ? normalizeNodeStatus(sourceNode) : 'locked';
         if (sourceStatus === 'mastered' || sourceStatus === 'active') {
-          strokeOpacity = sourceStatus === 'mastered' ? 0.52 : 0.4;
-          strokeWidth = sourceStatus === 'mastered' ? 2.3 : 1.9;
+          strokeOpacity = sourceStatus === 'mastered' ? 0.56 : 0.44;
+          strokeWidth = sourceStatus === 'mastered' ? 2.8 : 2.5;
         }
 
         // Neural animation for newly unlocked edges
@@ -410,6 +420,8 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [], 
                 y2={`${targetPos.y}%`}
                 stroke="#60a5fa"
                 strokeWidth={4}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
                 filter="url(#neural-glow)"
                 initial={{ opacity: 0 }}
                 animate={{
@@ -430,6 +442,8 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [], 
                 y2={`${targetPos.y}%`}
                 stroke="#a78bfa"
                 strokeWidth={2}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
                 initial={{ opacity: 0 }}
                 animate={{
                   opacity: [0, 1, 0.3]
@@ -472,6 +486,8 @@ function ConstellationLinks({ links, nodePositions, nodes, animatingEdges = [], 
             y2={`${targetPos.y}%`}
             stroke={strokeColor}
             strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
             filter="url(#constellation-glow)"
             initial={{ opacity: 0 }}
             animate={{
