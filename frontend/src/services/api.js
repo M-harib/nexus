@@ -1,6 +1,6 @@
 // API Service for Backend Integration
 // Always call backend directly (no Vite proxy dependency).
-const DEFAULT_API_BASE_URL = 'http://localhost:5000';
+const DEFAULT_API_BASE_URL = import.meta.env.DEV ? 'http://localhost:5001' : 'https://your-backend-url.onrender.com';
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/$/, '');
 const apiUrl = (path) => `${API_BASE_URL}${String(path).startsWith('/') ? path : `/${path}`}`;
 const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === '1';

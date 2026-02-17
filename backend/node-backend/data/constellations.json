@@ -133,6 +133,256 @@
       },
       "createdAt": "2026-02-15T14:50:35.836Z",
       "updatedAt": "2026-02-15T14:50:58.962Z"
+    },
+    {
+      "id": "const_1771358466364_cklrfg",
+      "title": "mcp",
+      "query": "mcp",
+      "tags": [],
+      "gauntletBestScore": null,
+      "graph": {
+        "nodes": [
+          {
+            "id": "mcp-intro",
+            "label": "MCP Introduction",
+            "status": "active",
+            "level": 1,
+            "description": "Understand what Microsoft Certified Professional (MCP) is and its significance in the industry."
+          },
+          {
+            "id": "mcp-benefits",
+            "label": "Benefits of MCP",
+            "status": "locked",
+            "level": 1,
+            "description": "Explore the career advantages and professional recognition gained from achieving MCP certifications."
+          },
+          {
+            "id": "cert-paths-overview",
+            "label": "Certification Paths Overview",
+            "status": "locked",
+            "level": 2,
+            "description": "Learn about the different Microsoft certification tracks available, such as Azure, Microsoft 365, and Dynamics 365."
+          },
+          {
+            "id": "choosing-path",
+            "label": "Choosing Your Certification Path",
+            "status": "locked",
+            "level": 2,
+            "description": "Select a certification path that aligns with your career goals, current skills, and interests."
+          },
+          {
+            "id": "exam-objectives",
+            "label": "Understanding Exam Objectives",
+            "status": "locked",
+            "level": 3,
+            "description": "Analyze the skills measured and topics covered in specific Microsoft certification exams to guide your study."
+          },
+          {
+            "id": "study-resources",
+            "label": "Study Resources & Tools",
+            "status": "locked",
+            "level": 3,
+            "description": "Discover official Microsoft learning paths, documentation, online courses, and other valuable study materials."
+          },
+          {
+            "id": "practice-exams",
+            "label": "Practice Exams & Labs",
+            "status": "locked",
+            "level": 4,
+            "description": "Utilize practice tests and hands-on labs to solidify knowledge and become familiar with the exam environment."
+          },
+          {
+            "id": "exam-strategies",
+            "label": "Exam Day Strategies",
+            "status": "locked",
+            "level": 4,
+            "description": "Develop effective strategies for managing time, understanding question formats, and performing optimally during the actual exam."
+          },
+          {
+            "id": "certification-maintenance",
+            "label": "Certification Maintenance",
+            "status": "locked",
+            "level": 5,
+            "description": "Learn how to renew your certifications and stay current with evolving Microsoft technologies and industry standards."
+          }
+        ],
+        "links": [
+          {
+            "source": "mcp-intro",
+            "target": "mcp-benefits"
+          },
+          {
+            "source": "mcp-benefits",
+            "target": "cert-paths-overview"
+          },
+          {
+            "source": "cert-paths-overview",
+            "target": "choosing-path"
+          },
+          {
+            "source": "choosing-path",
+            "target": "exam-objectives"
+          },
+          {
+            "source": "exam-objectives",
+            "target": "study-resources"
+          },
+          {
+            "source": "study-resources",
+            "target": "practice-exams"
+          },
+          {
+            "source": "practice-exams",
+            "target": "exam-strategies"
+          },
+          {
+            "source": "exam-strategies",
+            "target": "certification-maintenance"
+          }
+        ]
+      },
+      "createdAt": "2026-02-17T20:01:06.364Z",
+      "updatedAt": "2026-02-17T20:01:06.364Z"
+    },
+    {
+      "id": "const_1771358590360_v428m1",
+      "title": "mcp server",
+      "query": "mcp server",
+      "tags": [],
+      "gauntletBestScore": null,
+      "graph": {
+        "nodes": [
+          {
+            "id": "intro-to-mcp",
+            "label": "Intro to MCP Servers",
+            "status": "active",
+            "level": 1,
+            "description": "Understand what a Minecraft PC (MCP) server is and its basic purpose."
+          },
+          {
+            "id": "java-runtime-prep",
+            "label": "Java Runtime Preparation",
+            "status": "locked",
+            "level": 2,
+            "description": "Learn to install and configure the correct Java Runtime Environment for your server."
+          },
+          {
+            "id": "eula-agreement",
+            "label": "EULA Agreement",
+            "status": "locked",
+            "level": 2,
+            "description": "Understand and accept the Minecraft End User License Agreement before running a server."
+          },
+          {
+            "id": "basic-server-setup",
+            "label": "Basic Server Setup",
+            "status": "locked",
+            "level": 3,
+            "description": "Download the server JAR and run it for the first time on your operating system."
+          },
+          {
+            "id": "server-properties-config",
+            "label": "Server Properties Configuration",
+            "status": "locked",
+            "level": 3,
+            "description": "Configure core server settings using the server.properties file."
+          },
+          {
+            "id": "console-commands",
+            "label": "Console Commands",
+            "status": "locked",
+            "level": 4,
+            "description": "Learn essential commands to manage players, game modes, and server behavior directly from the console."
+          },
+          {
+            "id": "plugin-mod-basics",
+            "label": "Plugin and Mod Basics",
+            "status": "locked",
+            "level": 4,
+            "description": "Understand the difference between plugins and mods and how to install basic server-side enhancements."
+          },
+          {
+            "id": "firewall-port-forwarding",
+            "label": "Firewall and Port Forwarding",
+            "status": "locked",
+            "level": 5,
+            "description": "Configure your network to allow external players to connect to your server securely."
+          },
+          {
+            "id": "whitelist-permissions",
+            "label": "Whitelist and Permissions",
+            "status": "locked",
+            "level": 5,
+            "description": "Implement player access control using whitelists and set up basic permissions."
+          },
+          {
+            "id": "backup-restore",
+            "label": "Backup and Restore Strategies",
+            "status": "locked",
+            "level": 6,
+            "description": "Develop methods for regular server backups and understand how to restore your world."
+          },
+          {
+            "id": "performance-optimization",
+            "label": "Performance Optimization",
+            "status": "locked",
+            "level": 6,
+            "description": "Apply advanced settings and techniques to improve server lag and stability."
+          }
+        ],
+        "links": [
+          {
+            "source": "intro-to-mcp",
+            "target": "java-runtime-prep"
+          },
+          {
+            "source": "java-runtime-prep",
+            "target": "eula-agreement"
+          },
+          {
+            "source": "eula-agreement",
+            "target": "basic-server-setup"
+          },
+          {
+            "source": "basic-server-setup",
+            "target": "server-properties-config"
+          },
+          {
+            "source": "basic-server-setup",
+            "target": "console-commands"
+          },
+          {
+            "source": "server-properties-config",
+            "target": "plugin-mod-basics"
+          },
+          {
+            "source": "server-properties-config",
+            "target": "firewall-port-forwarding"
+          },
+          {
+            "source": "console-commands",
+            "target": "whitelist-permissions"
+          },
+          {
+            "source": "plugin-mod-basics",
+            "target": "whitelist-permissions"
+          },
+          {
+            "source": "whitelist-permissions",
+            "target": "backup-restore"
+          },
+          {
+            "source": "firewall-port-forwarding",
+            "target": "performance-optimization"
+          },
+          {
+            "source": "backup-restore",
+            "target": "performance-optimization"
+          }
+        ]
+      },
+      "createdAt": "2026-02-17T20:03:10.360Z",
+      "updatedAt": "2026-02-17T20:03:10.360Z"
     }
   ]
 }
