@@ -2,6 +2,7 @@ services:
   - type: web
     name: nexus-backend
     env: node
+    rootDir: backend/node-backend
     buildCommand: npm install
     startCommand: node server.js
     envVars:

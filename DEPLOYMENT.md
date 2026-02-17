@@ -1,6 +1,7 @@
 # NEXUS Deployment Guide
 
 ## Prerequisites
+
 - [ ] GitHub account
 - [ ] Vercel account (free)
 - [ ] Render account (free)
@@ -45,8 +46,11 @@ git push -u origin main
 Update `frontend/src/services/api.js`:
 
 ```javascript
-const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
-  || (import.meta.env.DEV ? 'http://localhost:5001' : 'https://YOUR-BACKEND-URL.onrender.com');
+const DEFAULT_API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV
+    ? "http://localhost:5001"
+    : "https://YOUR-BACKEND-URL.onrender.com");
 ```
 
 Or create `frontend/.env.production`:
@@ -81,11 +85,13 @@ VITE_API_BASE_URL=https://YOUR-BACKEND-URL.onrender.com
 ## Alternative Deployment Options
 
 ### Frontend Alternatives
+
 - **Netlify**: Similar to Vercel, drag-and-drop deployment
 - **GitHub Pages**: Free, but requires manual setup for SPA routing
 - **Cloudflare Pages**: Fast CDN, free tier
 
 ### Backend Alternatives
+
 - **Railway**: https://railway.app (similar to Render)
 - **Fly.io**: https://fly.io (more configuration required)
 - **Heroku**: No longer has free tier
@@ -94,6 +100,7 @@ VITE_API_BASE_URL=https://YOUR-BACKEND-URL.onrender.com
 ## Environment Variables Summary
 
 ### Backend (.env)
+
 ```
 GEMINI_API_KEY=your_actual_key
 ELEVENLABS_API_KEY=your_actual_key
@@ -102,6 +109,7 @@ NODE_ENV=production
 ```
 
 ### Frontend (.env.production)
+
 ```
 VITE_API_BASE_URL=https://your-backend-url.onrender.com
 ```
@@ -109,16 +117,19 @@ VITE_API_BASE_URL=https://your-backend-url.onrender.com
 ## Troubleshooting
 
 ### Backend not responding
+
 - Check Render logs for errors
 - Verify environment variables are set correctly
 - Check if free tier is asleep (Render free tier sleeps after inactivity)
 
 ### Frontend can't connect to backend
+
 - Verify `VITE_API_BASE_URL` is set correctly
 - Check CORS settings in backend
 - Check browser console for errors
 
 ### API calls failing
+
 - Verify API keys are set in Render dashboard
 - Check backend logs for API errors
 - Ensure Gemini API quota is not exceeded
